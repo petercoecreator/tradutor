@@ -1,0 +1,1259 @@
+--==================== INTRO v3 (petercoe1) ====================--
+do
+	local Players      = game:GetService("Players")
+	local TweenService = game:GetService("TweenService")
+	local Lighting     = game:GetService("Lighting")
+	local Debris       = game:GetService("Debris")
+	local player       = Players.LocalPlayer
+	local CREATOR_ID   = 7719697513
+	local BLUE, RED    = Color3.fromRGB(90, 140, 255), Color3.fromRGB(235, 90, 70)
+	local WHITE        = Color3.new(1, 1, 1)
+
+	local function tw(o, t, p, style, dir, rep, rev)
+		local x = TweenService:Create(o, TweenInfo.new(t, style or Enum.EasingStyle.Quint,
+			dir or Enum.EasingDirection.Out, rep or 0, rev or false), p)
+		x:Play()
+		return x
+	end
+	local function corner(o, r) Instance.new("UICorner", o).CornerRadius = r or UDim.new(1, 0) end
+	local function duoGrad(o)
+		local g = Instance.new("UIGradient", o)
+		g.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, BLUE), ColorSequenceKeypoint.new(0.5, RED), ColorSequenceKeypoint.new(1, BLUE),
+		})
+		return g
+	end
+	local function loadThumb(img, id)
+		task.spawn(function()
+			local ok, res = pcall(Players.GetUserThumbnailAsync, Players, id,
+				Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+			if ok then img.Image = res end
+		end)
+	end
+
+	local intro = Instance.new("ScreenGui")
+	intro.Name, intro.ResetOnSpawn, intro.DisplayOrder, intro.IgnoreGuiInset = "TranslatorIntro", false, 100, true
+	intro.Parent = (gethui and gethui()) or player:WaitForChild("PlayerGui")
+
+	-- desfoque
+	local blur = Instance.new("BlurEffect")
+	blur.Size, blur.Parent = 0, Lighting
+	tw(blur, 0.6, { Size = 20 })
+
+	-- fundo
+	local bg = Instance.new("Frame")
+	bg.Size, bg.BackgroundColor3, bg.BackgroundTransparency = UDim2.fromScale(1, 1), Color3.fromRGB(8, 8, 14), 1
+	bg.Parent = intro
+	local bgGrad = Instance.new("UIGradient", bg)
+	bgGrad.Color = ColorSequence.new(Color3.fromRGB(20, 25, 60), Color3.fromRGB(50, 15, 15))
+	bgGrad.Rotation = 45
+	tw(bg, 0.6, { BackgroundTransparency = 0.25 })
+	tw(bgGrad, 5, { Rotation = 225 }, Enum.EasingStyle.Linear)
+
+	-- partículas
+	local running = true
+	task.spawn(function()
+		while running do
+			local p = Instance.new("Frame")
+			local s = math.random(3, 7)
+			p.Size, p.Position = UDim2.fromOffset(s, s), UDim2.fromScale(math.random(), 1.05)
+			p.BackgroundColor3 = math.random() > 0.5 and BLUE or RED
+			p.BackgroundTransparency, p.BorderSizePixel = 0.2, 0
+			p.Parent = bg
+			corner(p)
+			local t = math.random(25, 45) / 10
+			tw(p, t, { Position = UDim2.fromScale(p.Position.X.Scale + (math.random() - 0.5) * 0.15, -0.05),
+				BackgroundTransparency = 1 }, Enum.EasingStyle.Sine)
+			Debris:AddItem(p, t)
+			task.wait(0.05)
+		end
+	end)
+
+	-- cartão
+	local card = Instance.new("Frame")
+	card.AnchorPoint, card.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.65)
+	card.Size, card.BackgroundColor3 = UDim2.fromOffset(350, 320), Color3.fromRGB(16, 16, 22)
+	card.ClipsDescendants, card.Rotation = true, -8
+	card.Parent = intro
+	corner(card, UDim.new(0, 18))
+	local cs = Instance.new("UIStroke", card); cs.Thickness = 2.5; cs.Color = WHITE
+	local csGrad = duoGrad(cs)
+	local scale = Instance.new("UIScale", card); scale.Scale = 0
+
+	-- brilho que atravessa (não vaza)
+	local shine = Instance.new("Frame")
+	shine.Size, shine.BackgroundColor3 = UDim2.fromScale(1, 1), WHITE
+	shine.BackgroundTransparency, shine.BorderSizePixel, shine.ZIndex = 0, 0, 10
+	shine.Parent = card
+	corner(shine, UDim.new(0, 18))
+	local shineGrad = Instance.new("UIGradient", shine)
+	shineGrad.Rotation = 20
+	shineGrad.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.42, 1),
+		NumberSequenceKeypoint.new(0.5, 0.7),
+		NumberSequenceKeypoint.new(0.58, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	shineGrad.Offset = Vector2.new(-1, 0)
+
+	local function playShine(t)
+		shineGrad.Offset = Vector2.new(-1, 0)
+		tw(shineGrad, t, { Offset = Vector2.new(1, 0) }, Enum.EasingStyle.Quad)
+	end
+
+	--===== TOPO: JOGADOR =====--
+	local glow = Instance.new("Frame")
+	glow.AnchorPoint, glow.Position = Vector2.new(0.5, 0.5), UDim2.new(0.5, 0, 0, 78)
+	glow.Size, glow.BackgroundColor3, glow.BackgroundTransparency = UDim2.fromOffset(130, 130), BLUE, 0.7
+	glow.Parent = card
+	corner(glow)
+	local glowScale = Instance.new("UIScale", glow)
+
+	local ring = Instance.new("Frame")
+	ring.AnchorPoint, ring.Position = Vector2.new(0.5, 0.5), UDim2.new(0.5, 0, 0, 78)
+	ring.Size, ring.BackgroundColor3 = UDim2.fromOffset(112, 112), WHITE
+	ring.Parent = card
+	corner(ring)
+	local ringGrad = duoGrad(ring)
+	local ringScale = Instance.new("UIScale", ring); ringScale.Scale = 0
+
+	local avatar = Instance.new("ImageLabel")
+	avatar.AnchorPoint, avatar.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+	avatar.Size, avatar.BackgroundColor3 = UDim2.new(1, -8, 1, -8), Color3.fromRGB(30, 30, 42)
+	avatar.Parent = ring
+	corner(avatar)
+	loadThumb(avatar, player.UserId)
+
+	local function txt(parent, t, pos, size, font, color, align)
+		local l = Instance.new("TextLabel")
+		l.Position, l.BackgroundTransparency = pos, 1
+		l.Size = UDim2.new(1, -20, 0, size + 6)
+		if not align then l.AnchorPoint = Vector2.new(0.5, 0) end
+		l.TextXAlignment = align or Enum.TextXAlignment.Center
+		l.Text, l.Font, l.TextSize, l.TextColor3, l.TextTransparency = t, font, size, color, 1
+		l.Parent = parent
+		return l
+	end
+
+	local welcome = txt(card, "Bem-vindo ao tradutor ES/EN,", UDim2.new(0.5, 0, 0, 150), 18, Enum.Font.GothamBold, WHITE)
+	local name    = txt(card, player.DisplayName .. "!", UDim2.new(0.5, 0, 0, 176), 24, Enum.Font.GothamBlack, WHITE)
+	local nameGrad = duoGrad(name)
+	local nameScale = Instance.new("UIScale", name); nameScale.Scale = 0.5
+
+	-- barra de carregamento
+	local barBg = Instance.new("Frame")
+	barBg.AnchorPoint, barBg.Position = Vector2.new(0.5, 0), UDim2.new(0.5, 0, 0, 218)
+	barBg.Size, barBg.BackgroundColor3, barBg.BackgroundTransparency = UDim2.fromOffset(260, 6), Color3.fromRGB(40, 40, 55), 1
+	barBg.Parent = card
+	corner(barBg)
+	local fill = Instance.new("Frame")
+	fill.Size, fill.BackgroundColor3 = UDim2.fromScale(0, 1), WHITE
+	fill.Parent = barBg
+	corner(fill)
+	duoGrad(fill)
+	local pct = txt(card, "0%", UDim2.new(0.5, 0, 0, 228), 11, Enum.Font.GothamMedium, Color3.fromRGB(150, 150, 170))
+
+	--===== RODAPÉ: CRIADOR =====--
+	local line = Instance.new("Frame")
+	line.AnchorPoint, line.Position = Vector2.new(0.5, 0), UDim2.new(0.5, 0, 0, 258)
+	line.Size, line.BackgroundColor3, line.BorderSizePixel = UDim2.fromOffset(0, 1), Color3.fromRGB(60, 60, 80), 0
+	line.Parent = card
+
+	local credit = Instance.new("Frame")
+	credit.AnchorPoint, credit.Position = Vector2.new(0.5, 0), UDim2.new(0.5, 0, 0, 290)
+	credit.Size, credit.BackgroundTransparency = UDim2.fromOffset(170, 32), 1
+	credit.Parent = card
+
+	local cRing = Instance.new("Frame")
+	cRing.Size, cRing.BackgroundColor3 = UDim2.fromOffset(30, 30), WHITE
+	cRing.BackgroundTransparency = 1
+	cRing.Parent = credit
+	corner(cRing)
+	local cRingGrad = duoGrad(cRing)
+
+	local cAvatar = Instance.new("ImageLabel")
+	cAvatar.AnchorPoint, cAvatar.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+	cAvatar.Size, cAvatar.BackgroundColor3 = UDim2.new(1, -4, 1, -4), Color3.fromRGB(30, 30, 42)
+	cAvatar.BackgroundTransparency, cAvatar.ImageTransparency = 1, 1
+	cAvatar.Parent = cRing
+	corner(cAvatar)
+	loadThumb(cAvatar, CREATOR_ID)
+
+	local cBy = txt(credit, "criado por", UDim2.fromOffset(38, 0), 10, Enum.Font.Gotham,
+		Color3.fromRGB(130, 130, 150), Enum.TextXAlignment.Left)
+	local cName = txt(credit, "petercoe1", UDim2.fromOffset(38, 13), 13, Enum.Font.GothamBold,
+		Color3.fromRGB(200, 200, 215), Enum.TextXAlignment.Left)
+
+	-- loops
+	task.spawn(function()
+		while running do
+			ringGrad.Rotation = (ringGrad.Rotation + 5) % 360
+			cRingGrad.Rotation = (cRingGrad.Rotation + 5) % 360
+			csGrad.Rotation = (csGrad.Rotation + 2) % 360
+			task.wait()
+		end
+	end)
+	tw(glowScale, 0.9, { Scale = 1.25 }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+	tw(glow, 0.9, { BackgroundTransparency = 0.9 }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+	nameGrad.Offset = Vector2.new(-1, 0)
+	tw(nameGrad, 1.5, { Offset = Vector2.new(1, 0) }, Enum.EasingStyle.Linear, nil, -1)
+
+	--===== SEQUÊNCIA =====--
+	tw(card, 0.7, { Position = UDim2.fromScale(0.5, 0.5), Rotation = 0 }, Enum.EasingStyle.Back)
+	tw(scale, 0.7, { Scale = 1 }, Enum.EasingStyle.Back).Completed:Wait()
+	playShine(0.8)
+
+	tw(ringScale, 0.8, { Scale = 1 }, Enum.EasingStyle.Elastic)
+	task.wait(0.35)
+
+	welcome.TextTransparency, welcome.MaxVisibleGraphemes = 0, 0
+	for i = 1, utf8.len(welcome.Text) do welcome.MaxVisibleGraphemes = i; task.wait(0.025) end
+
+	tw(name, 0.4, { TextTransparency = 0 })
+	tw(nameScale, 0.6, { Scale = 1 }, Enum.EasingStyle.Elastic)
+	task.wait(0.3)
+
+	tw(line, 0.5, { Size = UDim2.fromOffset(220, 1) })
+	tw(credit, 0.5, { Position = UDim2.new(0.5, 0, 0, 272) }, Enum.EasingStyle.Back)
+	tw(cRing, 0.4, { BackgroundTransparency = 0 })
+	tw(cAvatar, 0.4, { BackgroundTransparency = 0, ImageTransparency = 0 })
+	tw(cBy, 0.4, { TextTransparency = 0 })
+	tw(cName, 0.4, { TextTransparency = 0 })
+	task.wait(0.2)
+
+	tw(barBg, 0.3, { BackgroundTransparency = 0 })
+	tw(pct, 0.3, { TextTransparency = 0 })
+	local dur, t0 = 1.6, tick()
+	tw(fill, dur, { Size = UDim2.fromScale(1, 1) }, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+	while tick() - t0 < dur do
+		pct.Text = math.floor((tick() - t0) / dur * 100) .. "%"
+		task.wait()
+	end
+	pct.Text = "✓ Pronto!"
+	playShine(0.6)
+	task.wait(0.7)
+
+	-- saída
+	tw(ringScale, 0.3, { Scale = 1.2 }, Enum.EasingStyle.Quad)
+	task.wait(0.15)
+	tw(card, 0.5, { Rotation = 10, Position = UDim2.fromScale(0.5, 0.4) }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+	tw(scale, 0.5, { Scale = 0 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+	tw(bg, 0.6, { BackgroundTransparency = 1 })
+	tw(blur, 0.6, { Size = 0 }).Completed:Wait()
+
+	running = false
+	blur:Destroy()
+	intro:Destroy()
+end
+--==================== FIM DA INTRO ====================--
+-- 🌐 Tradutor de Chat EN/ES ⇄ PT  (v3.2)
+local Players           = game:GetService("Players")
+local HttpService       = game:GetService("HttpService")
+local TextChatService   = game:GetService("TextChatService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UIS               = game:GetService("UserInputService")
+local TweenService      = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local httpRequest = (syn and syn.request) or http_request or request or (fluxus and fluxus.request)
+
+local CONFIG = {
+	MaxMessages = 60,
+	ShowOwn     = false,
+	SlangMode   = true,
+	Lang        = "en", -- idioma de SAÍDA: "en" ou "es"
+	ToggleKey   = Enum.KeyCode.RightShift,
+	Accent      = Color3.fromRGB(90, 140, 255),
+	AccentES    = Color3.fromRGB(235, 90, 70),
+}
+
+--======================================================--
+--                       INGLÊS                         --
+--======================================================--
+local SLANG = {
+	-- risadas
+	lol="haha", lmao="hahaha", lmfao="hahaha", rofl="hahaha", xd="haha", kek="haha", lul="haha",
+	lel="haha", lolol="hahaha", ded="dying of laughter", dead="dying of laughter",
+	-- expressões
+	omg="oh my god", omfg="oh my god", wtf="what the fuck", wth="what the hell", tf="the fuck",
+	smh="shaking my head", ffs="for fuck's sake", jk="just kidding", jks="just kidding",
+	idk="I don't know", idek="I don't even know", idc="I don't care", idgaf="I don't give a fuck",
+	ik="I know", ikr="I know right", ily="I love you", ilysm="I love you so much", ily2="I love you too",
+	imo="in my opinion", imho="in my humble opinion", tbh="to be honest", tbf="to be fair",
+	ngl="not gonna lie", fr="for real", frfr="for real", irl="in real life", rl="real life",
+	btw="by the way", fyi="for your information", aka="also known as", atm="at the moment",
+	brb="be right back", bbl="be back later", bbs="be back soon", gtg="got to go", g2g="got to go",
+	ttyl="talk to you later", ttys="talk to you soon", afk="away from keyboard",
+	np="no problem", nw="no worries", dw="don't worry", nvm="never mind", nm="not much",
+	ty="thank you", thx="thanks", thnx="thanks", tx="thanks", tysm="thank you so much",
+	tyvm="thank you very much", pls="please", plz="please", plox="please", pwease="please",
+	yw="you're welcome", ofc="of course", rn="right now", asap="as soon as possible",
+	dm="private message", pm="private message", msg="message", txt="text",
+	omw="on my way", otw="on the way", pov="point of view", yolo="you only live once",
+	iykyk="if you know you know", js="just saying", jw="just wondering", gn="good night",
+	gm="good morning", nite="night", tn="tonight", ["2nite"]="tonight", hbd="happy birthday",
+	bday="birthday", congrats="congratulations", grats="congratulations", gratz="congratulations",
+	gz="congratulations", rip="rest in peace", sry="sorry", srry="sorry", soz="sorry", mb="my bad",
+	wtv="whatever", wtvr="whatever", whatevs="whatever", oof="ouch", yikes="yikes",
+	-- perguntas
+	wyd="what are you doing", wbu="what about you", hbu="how about you", wby="what about you",
+	wsp="what's up", wassup="what's up", sup="what's up", wu="what's up", hru="how are you",
+	hyd="how are you doing", wya="where are you at", wru="where are you", wdym="what do you mean",
+	wym="what you mean", whatcha="what are you", watcha="what are you", whats="what's",
+	whos="who's", wheres="where's", hows="how's", thats="that's",
+	-- contrações sem apóstrofo
+	im="I'm", dont="don't", cant="can't", wont="won't", didnt="didn't", doesnt="doesn't",
+	isnt="isn't", arent="aren't", wasnt="wasn't", ive="I've", youre="you're", theyre="they're",
+	shouldnt="shouldn't", wouldnt="wouldn't", couldnt="couldn't", havent="haven't",
+	-- informais
+	ig="I guess", istg="I swear to god", hmu="contact me", oml="oh my lord", ong="on god",
+	deadass="seriously", goat="greatest of all time", mid="mediocre", cap="lie", nocap="no lie",
+	bet="okay deal", lowkey="kind of", highkey="really", fam="friend", bro="bro", bruh="bro seriously",
+	bruv="bro", dude="dude", sis="sister", bff="best friend", bffl="best friend", gf="girlfriend",
+	bf="boyfriend", bae="babe", bby="baby", qt="cutie", luv="love", wuv="love", hun="honey",
+	ppl="people", sm="so much", u="you", ur="your", r="are", y="why", k="okay", kk="okay",
+	ok="okay", oki="okay", okie="okay", ye="yes", yea="yes", yeah="yes", yh="yes", yep="yes",
+	yup="yes", mhm="yes", nah="no", nope="no", ya="you", yall="you all", ["y'all"]="you all",
+	wanna="want to", gonna="going to", gotta="have to", kinda="kind of", sorta="sort of",
+	lemme="let me", gimme="give me", dunno="don't know", ["ain't"]="is not", aint="is not",
+	tryna="trying to", finna="going to", boutta="about to", bout="about", abt="about",
+	outta="out of", lotta="a lot of", shoulda="should have", coulda="could have",
+	woulda="would have", ima="I'm going to", imma="I'm going to", ["i'ma"]="I'm going to",
+	aight="alright", ight="alright", alr="alright", cuz="because", cos="because", coz="because",
+	bc="because", tho="though", thru="through", rly="really", srsly="seriously", prob="probably",
+	prolly="probably", probs="probably", def="definitely", defo="definitely", obv="obviously",
+	obvs="obviously", esp="especially", acc="actually", ["w/"]="with", ["w/o"]="without",
+	b4="before", ["2day"]="today", ["2moro"]="tomorrow", tmrw="tomorrow", tmr="tomorrow",
+	l8r="later", l8="late", gr8="great", m8="mate", h8="hate", w8="wait", str8="straight",
+	any1="anyone", some1="someone", no1="no one", ne1="anyone", every1="everyone",
+	-- gírias
+	based="based", cringe="cringe", ratio="ratio", salty="bitter", toxic="toxic", simp="simp",
+	rizz="charm", sigma="sigma", slay="nailed it", vibe="vibe", vibes="vibes", yeet="throw",
+	bussin="really good", drip="style", sus="suspicious", fire="amazing", lit="amazing",
+	goated="the best", cooked="done for", glazing="overpraising", aura="aura", skibidi="silly",
+	-- jogos
+	gg="good game", ggs="good games", ggwp="good game well played", ggez="good game easy",
+	ez="easy", gl="good luck", hf="have fun", glhf="good luck have fun", wp="well played",
+	nt="nice try", ns="nice shot", gj="good job", ff="give up", w="win", l="loss", f="rip",
+	op="overpowered", nerf="weaken", buff="strengthen", noob="beginner", nub="beginner",
+	n00b="beginner", newb="beginner", pro="professional", tryhard="tryhard", sweaty="tryhard",
+	sweat="tryhard", bot="bad player", trash="trash", carry="carry", clutch="clutch", grind="grind",
+	hax="hacks", hacker="hacker", exploiter="cheater", cheater="cheater", camper="camper",
+	tp="teleport", lvl="level", hp="health", dmg="damage", xp="experience", inv="inventory",
+	obby="obstacle course", bux="robux", mod="moderator", mods="moderators", sv="server",
+	srv="server", lag="lag", laggy="laggy", npc="npc", smurf="smurf", rage="rage", ragequit="rage quit",
+	-- palavrões
+	stfu="shut the fuck up", gtfo="get the fuck out", fu="fuck you", fk="fuck", fck="fuck",
+	fuk="fuck", sht="shit", af="as fuck", mf="motherfucker", mofo="motherfucker",
+	pos="piece of shit", sob="son of a bitch", bs="bullshit", kys="kill yourself",
+	dumbass="idiot", jerk="jerk", stoopid="stupid", dum="dumb", cya="see you",
+	[":)"]="(feliz)", [":("]="(triste)", [":d"]="(rindo)", ["<3"]="(amor)", [":p"]="(brincando)",
+	[";)"]="(piscando)", [":/"]="(desconfiado)",
+}
+
+local REVERSE = {
+	{"what are you doing","wyd"},{"i swear to god","istg"},{"talk to you later","ttyl"},
+	{"as soon as possible","asap"},{"what the fuck","wtf"},{"what the hell","wth"},
+	{"i do not know","idk"},{"i don't know","idk"},{"i don't care","idc"},{"to be honest","tbh"},
+	{"not going to lie","ngl"},{"not gonna lie","ngl"},{"in my opinion","imo"},{"be right back","brb"},
+	{"thank you so much","tysm"},{"thank you very much","tysm"},{"thank you","ty"},{"thanks","thx"},
+	{"oh my god","omg"},{"by the way","btw"},{"i have to go","gtg"},{"got to go","gtg"},
+	{"how are you","hru"},{"what about you","wbu"},{"what's up","sup"},{"for real","fr"},
+	{"never mind","nvm"},{"no problem","np"},{"of course","ofc"},{"right now","rn"},
+	{"on my way","omw"},{"good night","gn"},{"my bad","mb"},{"don't worry","dw"},
+	{"i guess","ig"},{"good game","gg"},{"i love you","ily"},{"i know","ik"},{"in real life","irl"},
+	{"shut up","stfu"},{"just kidding","jk"},{"i am going to","imma"},{"going to","gonna"},
+	{"want to","wanna"},{"have to","gotta"},{"got to","gotta"},{"kind of","kinda"},{"let me","lemme"},
+	{"give me","gimme"},{"trying to","tryna"},{"because","cuz"},{"please","pls"},{"really","rly"},
+	{"people","ppl"},{"seriously","srsly"},{"tomorrow","tmrw"},{"probably","prob"},{"okay","ok"},
+	{"yes","yea"},{"brother","bro"},{"i'm","im"},{"don't","dont"},{"can't","cant"},{"you're","ur"},
+	{"your","ur"},{"you","u"},{"are","r"},{"suspicious","sus"},{"easy","ez"},{"sorry","sry"},
+	{"message","msg"},{"about","abt"},{"whatever","wtv"},{"congratulations","gz"},
+}
+
+local PT_DIRECT = {
+	["eae"]="sup", ["eai"]="sup", ["e ai"]="sup", ["salve"]="sup", ["opa"]="yo", ["oi"]="hey",
+	["ola"]="hey", ["oi galera"]="hey guys", ["salve galera"]="sup guys", ["galera"]="guys",
+	["pessoal"]="guys", ["tudo bem"]="how u doing?", ["tudo bom"]="how u doing?",
+	["tudo certo"]="all good?", ["de boa"]="im good", ["to de boa"]="im chillin",
+	["estou de boa"]="im chillin", ["to bem"]="im good", ["estou bem"]="im good",
+	["beleza"]="bet", ["pode crer"]="fr", ["tamo junto"]="appreciate it", ["valeu"]="thx",
+	["valeu mano"]="thx bro", ["obrigado"]="thx", ["obrigado mano"]="thx bro", ["obrigada"]="thx",
+	["de nada"]="np", ["por nada"]="np", ["foi mal"]="my bad", ["desculpa"]="sorry",
+	["perdao"]="sorry", ["sei la"]="idk", ["nao sei"]="idk", ["eu nao sei"]="idk", ["eu sei"]="ik",
+	["bora"]="lets go", ["vamo"]="lets go", ["vamos"]="lets go", ["bora la"]="lets go",
+	["partiu"]="lets go", ["sim"]="yeah", ["nao"]="nah", ["boa"]="nice", ["mano"]="bro",
+	["que isso"]="bruh", ["mentira"]="no way", ["nossa"]="damn", ["caramba"]="damn",
+	["meu deus"]="omg", ["tchau"]="cya", ["flw"]="cya", ["falou"]="cya", ["ate mais"]="cya later",
+	["eu"]="me", ["eu tambem"]="me too", ["eu nao"]="not me", ["alguem fala ingles"]="anyone speak english?",
+	["vem ca"]="come here", ["vem comigo"]="come with me", ["me segue"]="follow me",
+	["segue eu"]="follow me", ["espera"]="wait", ["pera"]="wait", ["perai"]="wait",
+	["calma"]="chill", ["entendi"]="got it", ["nao entendi"]="i dont get it",
+	["ah nao"]="oh no", ["ai nao"]="oh no", ["ah"]="oh", ["ai"]="ow", ["aff"]="ugh",
+	["afe"]="ugh", ["ue"]="huh", ["oxe"]="huh", ["eita"]="whoa", ["vish"]="yikes",
+	["ah ta"]="oh ok", ["ah esta"]="oh ok", ["ata"]="oh ok", ["hmm"]="hmm", ["serio"]="fr?",
+	["que"]="what", ["o que"]="what", ["como assim"]="wdym", ["nem"]="nope",
+	["pois e"]="yeah ikr", ["nao acredito"]="no way", ["que pena"]="thats sad", ["sera"]="maybe",
+	["bom dia"]="morning", ["boa tarde"]="good afternoon", ["boa noite"]="gn",
+	["boa noite galera"]="gn guys", ["parabens"]="congrats", ["ajuda"]="help",
+	["me ajuda"]="help me", ["socorro"]="help!", ["para"]="stop", ["pare"]="stop", ["corre"]="run",
+	["ganhamos"]="we won", ["ganhei"]="i won", ["venci"]="i won", ["perdi"]="i lost",
+	["perdemos"]="we lost", ["acabou"]="its over", ["vou sair"]="gtg", ["tenho que ir"]="gtg",
+	["ja volto"]="brb", ["volto ja"]="brb", ["to afk"]="afk", ["que lag"]="so laggy",
+	["bom jogo"]="gg", ["boa sorte"]="gl", ["boa jogada"]="nice play", ["muito bom"]="so good",
+	["legal"]="cool", ["top"]="sick", ["massa"]="cool", ["show"]="nice", ["da hora"]="sick",
+	["que daora"]="thats sick", ["irado"]="sick", ["nada"]="nothing", ["nada nao"]="nvm",
+	["deixa"]="nvm", ["deixa pra la"]="nvm", ["esquece"]="nvm", ["qual seu nome"]="whats ur name?",
+	["de onde voce e"]="where u from?", ["sou do brasil"]="im from brazil", ["sou brasileiro"]="im brazilian",
+	["voce e brasileiro"]="are u brazilian?", ["quantos anos voce tem"]="how old r u?",
+	["quer trocar"]="wanna trade?", ["vamos trocar"]="wanna trade?", ["troca"]="trade?",
+	["aceita"]="accept", ["me adiciona"]="add me", ["me add"]="add me", ["certo"]="right",
+	["isso"]="yeah", ["exato"]="exactly", ["claro"]="ofc", ["com certeza"]="definitely",
+	["talvez"]="maybe", ["nunca"]="never", ["sempre"]="always", ["agora"]="now", ["depois"]="later",
+	["to com fome"]="im hungry", ["vou dormir"]="gonna sleep", ["cuidado"]="watch out",
+	["atras de voce"]="behind u", ["facil"]="ez", ["dificil"]="hard", ["ele ta de hack"]="hes hacking",
+	["hacker"]="hacker", ["denuncia"]="report him", ["reporta"]="report him", ["noob"]="noob",
+	["te amo"]="ily", ["amigo"]="friend", ["quer ser meu amigo"]="wanna be friends?",
+}
+
+local NATURAL = {
+	{"thank you very much","thanks a lot"},{"does anyone","anyone"},{"is anyone","anyone"},
+	{"good morning","morning"},{"thank you","thanks"},{"very good","nice"},{"my friend","bro"},
+	{"i am","i'm"},{"you are","you're"},{"we are","we're"},{"they are","they're"},
+	{"it is","it's"},{"that is","that's"},{"what is","what's"},{"there is","there's"},
+	{"do not","don't"},{"does not","doesn't"},{"did not","didn't"},{"is not","isn't"},
+	{"are not","aren't"},{"was not","wasn't"},{"cannot","can't"},{"can not","can't"},
+	{"will not","won't"},{"would not","wouldn't"},{"i will","i'll"},{"you will","you'll"},
+	{"let us","let's"},{"hello","hey"},{"hi","hey"},{"okay","ok"},{"yes","yeah"},
+	{"dude","bro"},
+}
+
+local SHORT = {
+	["me"]="eu", ["me too"]="eu também", ["not me"]="eu não", ["me?"]="eu?",
+	["same"]="mesmo", ["same here"]="aqui também", ["u"]="você", ["you"]="você",
+	["yes"]="sim", ["no"]="não", ["ok"]="ok", ["okay"]="ok", ["sure"]="claro",
+	["why"]="por quê?", ["who"]="quem?", ["where"]="onde?", ["what"]="o quê?",
+	["how"]="como?", ["when"]="quando?", ["nothing"]="nada", ["here"]="aqui",
+	["mine"]="meu", ["my bad"]="foi mal", ["hi"]="oi", ["hello"]="olá", ["bye"]="tchau",
+	["hey"]="ei", ["yo"]="eae", ["what's up"]="eae", ["wait"]="espera", ["stop"]="para",
+	["run"]="corre", ["come"]="vem", ["come here"]="vem cá", ["follow me"]="me segue",
+	["nice"]="boa", ["cool"]="legal", ["true"]="verdade", ["facts"]="fato", ["real"]="real",
+	["bruh"]="mano...", ["bro"]="mano", ["dude"]="cara", ["damn"]="caramba", ["wow"]="uau",
+	["lmao"]="kkkk", ["lol"]="kkkk", ["haha"]="kkkk", ["hahaha"]="kkkk", ["rip"]="F",
+	["good game"]="bom jogo", ["easy"]="fácil", ["win"]="vitória", ["loss"]="derrota",
+	["thanks"]="valeu", ["thank you"]="obrigado", ["sorry"]="desculpa", ["please"]="por favor",
+	["no way"]="não acredito", ["for real"]="sério", ["seriously"]="sério?", ["maybe"]="talvez",
+	["never"]="nunca", ["always"]="sempre", ["now"]="agora", ["later"]="depois",
+}
+
+--======================================================--
+--                       ESPANHOL                       --
+--======================================================--
+local SLANG_ES = {
+	-- risadas
+	xd="jaja", jsjs="jaja", jsjsjs="jaja", lol="jaja", jaja="jaja", jajaja="jajaja",
+	jeje="jaja", jiji="jaja", jajsj="jaja", ksks="jaja",
+	-- abreviações
+	q="que", k="que", ke="que", qe="que", xq="porque", pq="porque", porq="porque", pk="porque",
+	xk="porque", pqe="porque", x="por", xa="para", pa="para", pal="para el", d="de",
+	tmb="también", tb="también", tbn="también", tmbn="también", tbm="también",
+	dnd="de nada", bn="bien", ntp="no te preocupes", ntc="no te creas", tqm="te quiero mucho",
+	tkm="te quiero mucho", tq="te quiero", msj="mensaje", mjs="mensaje", vdd="verdad",
+	toy="estoy", stoy="estoy", ta="está", sta="está", tas="estás", tamos="estamos", ps="pues",
+	tons="entonces", ntons="entonces", entons="entonces", porfa="por favor", porfis="por favor",
+	pf="por favor", xfa="por favor", xfavor="por favor", porfavor="por favor", plis="por favor",
+	grax="gracias", grx="gracias", grcs="gracias", grasias="gracias", bno="bueno", wueno="bueno",
+	nose="no sé", ns="no sé", nse="no sé", nc="ni idea", nidea="ni idea",
+	aki="aquí", aca="acá", ahi="ahí", ai="ahí", asi="así", haci="así", aora="ahora",
+	ahorita="ahora", orita="ahora", kiero="quiero", kieres="quieres", kien="quién",
+	qien="quién", kmo="cómo", cmo="cómo", cm="como", toa="toda", na="nada", tmr="mañana",
+	["mñn"]="mañana", ["mñ"]="mañana", ["mñna"]="mañana", mna="mañana", finde="fin de semana",
+	cole="colegio", profe="profesor", peli="película", compu="computadora", celu="celular",
+	cel="celular", xfin="por fin", bss="besos", bsos="besos",
+	-- saudações
+	ola="hola", holi="hola", holis="hola", wenas="buenas", wena="buena", salu2="saludos",
+	qtal="qué tal", qonda="qué onda", qhay="qué hay", qpx="qué pasa", kpx="qué pasa",
+	qpasa="qué pasa", qhaces="qué haces", qacs="qué haces",
+	-- sim / não
+	sip="sí", sep="sí", simon="sí", zi="sí", see="sí", nop="no", nel="no", nah="no",
+	obvio="obviamente", obvi="obviamente", va="vale", oki="vale", okis="vale", dale="vale",
+	-- gírias regionais
+	wey="amigo", ["güey"]="amigo", guey="amigo", we="amigo", hno="hermano", pana="amigo",
+	bro="hermano", carnal="hermano", compa="amigo", parce="amigo", parcero="amigo",
+	weon="amigo", ["weón"]="amigo", wn="amigo", ["tío"]="amigo", tio="amigo", ["tía"]="chica",
+	chaval="chico", morro="chico", pibe="chico", chamo="chico",
+	chido="genial", ["chévere"]="genial", chevere="genial", guay="genial", bacan="genial",
+	["bacán"]="genial", bakan="genial", piola="genial", copado="genial", brutal="increíble",
+	mola="es genial", flipante="increíble", padrisimo="genial",
+	boludo="tonto", pelotudo="tonto", gil="tonto", huevon="tonto", ["huevón"]="tonto",
+	pendejo="idiota", pndj="idiota", pdj="idiota", menso="tonto", tonto="tonto",
+	cabron="desgraciado", ["cabrón"]="desgraciado", culiao="maldito",
+	nmms="no puede ser", nms="no puede ser", nmm="no puede ser", ptm="maldita sea",
+	ctm="maldita sea", alv="a la mierda", hdp="hijo de puta", hpta="hijo de puta",
+	-- jogos
+	gg="buena partida", ez="fácil", noob="novato", nub="novato", manco="malo", mancos="malos",
+	bot="malo", pro="profesional", afk="ausente", lag="lag", laguea="tiene lag",
+	lagueado="con lag", hacker="tramposo", hax="trampas", chiter="tramposo", cheater="tramposo",
+	op="muy fuerte", xp="experiencia", lvl="nivel", lv="nivel", dmg="daño",
+	tp="teletransporte", sv="servidor", server="servidor", admin="administrador",
+	rip="descanse en paz", f="qué pena", tryhard="tryhard",
+	[":)"]="(feliz)", [":("]="(triste)", [":d"]="(rindo)", ["<3"]="(amor)", [";)"]="(piscando)",
+}
+
+local REVERSE_ES = {
+	{"te quiero mucho","tqm"},{"no te preocupes","ntp"},{"no puede ser","nmms"},
+	{"por favor","porfa"},{"de nada","dnd"},{"gracias","grax"},{"porque","xq"},
+	{"hermano","bro"},{"amigo","bro"},{"estoy","toy"},{"mensaje","msj"},{"verdad","vdd"},
+	{"de acuerdo","va"},{"también","tmb"},{"no sé","nose"},{"que","q"},
+}
+
+local PT_DIRECT_ES = {
+	["eae"]="qué onda", ["eai"]="qué onda", ["e ai"]="qué onda", ["salve"]="qué onda",
+	["opa"]="ey", ["oi"]="hola", ["ola"]="hola", ["oi galera"]="hola chicos",
+	["salve galera"]="qué onda chicos", ["galera"]="chicos", ["pessoal"]="chicos",
+	["tudo bem"]="qué tal?", ["tudo bom"]="qué tal?", ["tudo certo"]="todo bien?",
+	["de boa"]="todo bien", ["to de boa"]="estoy tranqui", ["estou de boa"]="estoy tranqui",
+	["to bem"]="estoy bien", ["estou bem"]="estoy bien", ["beleza"]="va",
+	["pode crer"]="de una", ["tamo junto"]="gracias bro", ["valeu"]="grax",
+	["valeu mano"]="grax bro", ["obrigado"]="gracias", ["obrigada"]="gracias",
+	["obrigado mano"]="gracias bro", ["de nada"]="de nada", ["por nada"]="de nada",
+	["foi mal"]="perdón", ["desculpa"]="perdón", ["perdao"]="perdón", ["sei la"]="ni idea",
+	["nao sei"]="no sé", ["eu nao sei"]="no sé", ["eu sei"]="ya sé", ["bora"]="vamos",
+	["vamo"]="vamos", ["vamos"]="vamos", ["bora la"]="vamos", ["partiu"]="vamos",
+	["sim"]="sí", ["nao"]="no", ["boa"]="bien", ["mano"]="bro", ["que isso"]="qué onda",
+	["mentira"]="no manches", ["nossa"]="wow", ["caramba"]="caramba", ["meu deus"]="dios mío",
+	["tchau"]="chao", ["flw"]="nos vemos", ["falou"]="nos vemos", ["ate mais"]="hasta luego",
+	["eu"]="yo", ["eu tambem"]="yo también", ["eu nao"]="yo no",
+	["alguem fala espanhol"]="alguien habla español?", ["vem ca"]="ven aquí",
+	["vem comigo"]="ven conmigo", ["me segue"]="sígueme", ["segue eu"]="sígueme",
+	["espera"]="espera", ["pera"]="espera", ["perai"]="espera", ["calma"]="tranqui",
+	["entendi"]="entendido", ["nao entendi"]="no entendí",
+	["ah nao"]="ay no", ["ai nao"]="ay no", ["ah"]="ah", ["ai"]="ay", ["aff"]="uff", ["afe"]="uff",
+	["ue"]="eh?", ["oxe"]="eh?", ["eita"]="órale", ["vish"]="uy", ["ata"]="ah ok", ["ah ta"]="ah ok",
+	["serio"]="en serio?", ["que"]="qué?", ["o que"]="qué?", ["como assim"]="cómo así?",
+	["nem"]="ni modo", ["pois e"]="pues sí", ["nao acredito"]="no puede ser",
+	["que pena"]="qué pena", ["sera"]="quizás", ["bom dia"]="buenos días",
+	["boa tarde"]="buenas tardes", ["boa noite"]="buenas noches", ["boa noite galera"]="buenas noches chicos",
+	["parabens"]="felicidades", ["ajuda"]="ayuda", ["me ajuda"]="ayúdame", ["socorro"]="ayuda!",
+	["para"]="para", ["pare"]="para", ["corre"]="corre", ["ganhamos"]="ganamos", ["ganhei"]="gané",
+	["venci"]="gané", ["perdi"]="perdí", ["perdemos"]="perdimos", ["acabou"]="se acabó",
+	["vou sair"]="me voy", ["tenho que ir"]="me tengo que ir", ["ja volto"]="ya vuelvo",
+	["volto ja"]="ya vuelvo", ["to afk"]="estoy afk", ["que lag"]="qué lag", ["bom jogo"]="gg",
+	["boa sorte"]="suerte", ["boa jogada"]="buena jugada", ["muito bom"]="muy bueno",
+	["legal"]="genial", ["top"]="genial", ["massa"]="chido", ["show"]="genial",
+	["da hora"]="genial", ["que daora"]="qué chido", ["irado"]="brutal", ["nada"]="nada",
+	["nada nao"]="nada", ["deixa"]="olvídalo", ["deixa pra la"]="olvídalo", ["esquece"]="olvídalo",
+	["qual seu nome"]="cómo te llamas?", ["de onde voce e"]="de dónde eres?",
+	["sou do brasil"]="soy de brasil", ["sou brasileiro"]="soy brasileño",
+	["voce e brasileiro"]="eres brasileño?", ["quantos anos voce tem"]="cuántos años tienes?",
+	["quer trocar"]="quieres tradear?", ["vamos trocar"]="tradeamos?", ["troca"]="tradeamos?",
+	["aceita"]="acepta", ["me adiciona"]="agrégame", ["me add"]="agrégame", ["certo"]="vale",
+	["isso"]="eso", ["exato"]="exacto", ["claro"]="claro", ["com certeza"]="por supuesto",
+	["talvez"]="quizás", ["nunca"]="nunca", ["sempre"]="siempre", ["agora"]="ahora",
+	["depois"]="después", ["to com fome"]="tengo hambre", ["vou dormir"]="me voy a dormir",
+	["cuidado"]="cuidado", ["atras de voce"]="detrás de ti", ["facil"]="fácil",
+	["dificil"]="difícil", ["ele ta de hack"]="está usando hack", ["hacker"]="hacker",
+	["denuncia"]="repórtalo", ["reporta"]="repórtalo", ["noob"]="noob", ["te amo"]="te quiero",
+	["amigo"]="amigo", ["quer ser meu amigo"]="quieres ser mi amigo?",
+}
+
+local NATURAL_ES = {
+	{"buenos días","buenas"},{"buenas tardes","buenas"},{"mi amigo","bro"},
+	{"de acuerdo","va"},{"muy bien","bien"},{"usted","tú"},
+}
+
+local SHORT_ES = {
+	["yo"]="eu", ["yo también"]="eu também", ["yo tambien"]="eu também", ["yo no"]="eu não",
+	["sí"]="sim", ["si"]="sim", ["no"]="não", ["vale"]="ok", ["va"]="ok", ["ok"]="ok",
+	["claro"]="claro", ["por qué"]="por quê?", ["por que"]="por quê?", ["quién"]="quem?",
+	["quien"]="quem?", ["dónde"]="onde?", ["donde"]="onde?", ["qué"]="o quê?", ["que"]="o quê?",
+	["cómo"]="como?", ["como"]="como?", ["cuándo"]="quando?", ["cuando"]="quando?",
+	["nada"]="nada", ["aquí"]="aqui", ["aqui"]="aqui", ["hola"]="oi", ["chao"]="tchau",
+	["adiós"]="tchau", ["adios"]="tchau", ["gracias"]="valeu", ["igual"]="igualmente",
+	["mismo"]="mesmo", ["perdón"]="foi mal", ["perdon"]="foi mal", ["mira"]="olha",
+	["miro"]="eu olho", ["oye"]="ei", ["venga"]="bora", ["dale"]="bora", ["vamos"]="vamos",
+	["espera"]="espera", ["ven"]="vem", ["ven aquí"]="vem cá", ["sígueme"]="me segue",
+	["al revés"]="ao contrário", ["al reves"]="ao contrário", ["en serio"]="sério?",
+	["de verdad"]="sério", ["qué onda"]="eae", ["que onda"]="eae", ["qué tal"]="tudo bem?",
+	["que tal"]="tudo bem?", ["buenas"]="eae", ["no sé"]="sei lá", ["ni idea"]="sei lá",
+	["bueno"]="beleza", ["genial"]="top", ["jaja"]="kkkk", ["jajaja"]="kkkk",
+	["no manches"]="mentira", ["qué pena"]="que pena", ["ay"]="ai", ["uy"]="vish",
+	["órale"]="eita", ["buena partida"]="bom jogo", ["fácil"]="fácil", ["amigo"]="mano",
+	["hermano"]="mano", ["tranqui"]="de boa", ["todo bien"]="tudo certo",
+}
+
+--==================== DETECÇÃO DE IDIOMA ====================--
+local function set(str) local t = {} for w in str:gmatch("%S+") do t[w] = true end return t end
+
+local EN_W = set([[the and you is are i it to of what that this my your me do don't dont not have
+was with for on in just im i'm its it's can will would be been were they them he she we us our how
+why who where when there here yes yeah get got go going want know like good bad really very so but
+if or at from about all some any lol bro dude bruh please thanks thank sorry guys hey hi hello
+nice man said say think something anyone someone everyone him her his did does gonna wanna u ur
+won lost game play playing gg]])
+
+local ES_W = set([[el los las y con por es esta este esto eso esa muy pero yo tu mi su mas
+tambien aqui hola gracias bueno buena todo vamos puedo quiero tengo hay ya cuando donde porque al
+del una lo le nos les estoy estas estan soy eres somos son fue hace hacer tiene tienen ahora
+siempre nunca algo alguien nadie cosa amigo hermano bien mucho poco quien cual cuanto aca alla
+oye mira pues entonces ella ellos usted ustedes hoy manana noche dia juego jugar ganar ni sin sobre
+hasta desde otro otra igual verdad claro vale wey jaja jajaja jsjs reves humillo pasa onda tal
+como nada vos sos tenes que dijo dice ese oigan chicos chido cabron puta mierda
+xq porfa ahorita orale]])
+
+local PT_W = set([[voce voces nao muito tambem obrigado entao isso esse essa pra eu meu minha com
+uma um do da na mais tem ta to tudo ele ela kkk kkkk mano vc cara porra jogo ganhar hein ne ai
+oi tchau valeu beleza agora depois aqui sim ja gente galera vamo bora sei vou foi tava estou
+tou fala falou mas quem onde quando porque pq tbm blz vlw]])
+
+local ACC = {
+	["á"]="a",["à"]="a",["â"]="a",["ã"]="a",["é"]="e",["ê"]="e",["í"]="i",
+	["ó"]="o",["ô"]="o",["õ"]="o",["ú"]="u",["ç"]="c",["ñ"]="n",["ü"]="u",
+	["Á"]="a",["À"]="a",["Â"]="a",["Ã"]="a",["É"]="e",["Ê"]="e",["Í"]="i",
+	["Ó"]="o",["Ô"]="o",["Õ"]="o",["Ú"]="u",["Ç"]="c",["Ñ"]="n",["Ü"]="u",
+}
+
+local function stripAccents(s)
+	for a, b in pairs(ACC) do s = s:gsub(a, b) end
+	return s
+end
+
+local function guessLang(raw)
+	local low = raw:lower()
+	local sc = { en = 0, es = 0, pt = 0 }
+	if low:find("ñ") or low:find("Ñ") or raw:find("¿") or raw:find("¡") then sc.es += 3 end
+	if low:find("ã") or low:find("õ") or low:find("ç") then sc.pt += 3 end
+	if low:find("kkk") then sc.pt += 2 end
+	local norm = stripAccents(low)
+	for w in norm:gmatch("[%a']+") do
+		if EN_W[w] then sc.en += 1 end
+		if ES_W[w] then sc.es += 1 end
+		if PT_W[w] then sc.pt += 1 end
+	end
+	local best, bs, second = nil, 0, 0
+	for lang, v in pairs(sc) do
+		if v > bs then best, second, bs = lang, bs, v
+		elseif v > second then second = v end
+	end
+	return best, bs, second
+end
+
+local function hasLetters(s)
+	local n = 0
+	for _ in s:gmatch("%a") do n += 1 end
+	return n >= 2
+end
+
+local function wordCount(s)
+	local n = 0
+	for _ in s:gmatch("%S+") do n += 1 end
+	return n
+end
+
+--==================== SELEÇÃO DE IDIOMA ====================--
+local LANG = {
+	en = { name="EN", flag="🇺🇸", slang=SLANG,    reverse=REVERSE,    direct=PT_DIRECT,    natural=NATURAL,    short=SHORT,    laugh="lmao",   color=CONFIG.Accent },
+	es = { name="ES", flag="🇪🇸", slang=SLANG_ES, reverse=REVERSE_ES, direct=PT_DIRECT_ES, natural=NATURAL_ES, short=SHORT_ES, laugh="jajaja", color=CONFIG.AccentES },
+}
+local function L() return LANG[CONFIG.Lang] end
+
+--==================== FUNÇÕES DE TEXTO ====================--
+local function capRuns(s, n)
+	local out, prev, run = {}, "", 0
+	for ch in s:gmatch(".") do
+		if ch == prev then run += 1 else prev, run = ch, 1 end
+		if run <= n then out[#out + 1] = ch end
+	end
+	return table.concat(out)
+end
+
+local function lookup(dict, k)
+	if k == "" then return nil end
+	return dict[k] or dict[capRuns(k, 2)] or dict[capRuns(k, 1)]
+end
+
+local function splitWord(w)
+	local pre = ""
+	while true do
+		local c = w:sub(1, 2)
+		if c == "¿" or c == "¡" then pre = pre .. c; w = w:sub(3) else break end
+	end
+	local lead, core, punct = w:match("^(%p*)(.-)(%p*)$")
+	return pre .. (lead or ""), core or w, punct or ""
+end
+
+local function expandSlang(text, dict)
+	local out = {}
+	for word in text:gmatch("%S+") do
+		local full = dict[word:lower()]
+		if full then
+			table.insert(out, full)
+		else
+			local pre, core, punct = splitWord(word)
+			local rep = lookup(dict, core:lower())
+			table.insert(out, rep and (pre .. rep .. punct) or word)
+		end
+	end
+	return table.concat(out, " ")
+end
+
+local function slangify(text, rev)
+	text = " " .. text:lower() .. " "
+	for _, pair in ipairs(rev) do
+		local pat = pair[1]:gsub("%p", "%%%0")
+		text = text:gsub("%f[%w']" .. pat .. "%f[^%w']", pair[2])
+	end
+	text = text:gsub("^%s+", ""):gsub("%s+$", "")
+	text = text:gsub("%.$", ""):gsub("!+$", "!")
+	return text
+end
+
+local function normKey(s)
+	s = s:lower():gsub("[%p%s]+$", "")
+	s = s:gsub("^%s+", "")
+	return s
+end
+
+local PT_ABBR = {
+	vc="você", vcs="vocês", ce="você", q="que", oq="o que", tbm="também", tb="também",
+	pq="porque", n="não", nn="não", msm="mesmo", mt="muito", mto="muito", mtos="muitos",
+	mta="muita", blz="beleza", cmg="comigo", ctg="contigo", hj="hoje", dps="depois",
+	agr="agora", td="tudo", tds="todos", qnd="quando", vdd="verdade", obg="obrigado",
+	brigado="obrigado", pfv="por favor", pfvr="por favor", sla="sei lá", mds="meu deus",
+	vlw="valeu", tmj="tamo junto", ta="está", to="estou", pra="para", pro="para o",
+	ngm="ninguém", alg="alguém", cade="cadê", fzr="fazer", qr="quer", eh="é", aki="aqui",
+	kd="cadê", flw="falou", pdc="pode crer", tlg="tá ligado", sdds="saudades",
+	fds="fim de semana", bjs="beijos", bj="beijo", abs="abraços", qlq="qualquer",
+	qq="qualquer", dnv="de novo", dms="demais", nd="nada", nda="nada", hr="hora", hrs="horas",
+	mn="mano", mlk="moleque", pprt="papo reto", slk="sério", krl="caralho", crl="caralho",
+	pqp="puta que pariu", fdp="filho da puta", vsf="vai se foder", tnc="tomar no cu",
+}
+
+local function isLaugh(k)
+	return (k:match("^k+$") and #k >= 3) or (k:match("^[ha]+$") and #k >= 4 and k:find("ha"))
+		or (k:match("^[rs]+$") and #k >= 4)
+end
+
+local function preparePT(text)
+	local laugh, words = false, {}
+	for w in text:gmatch("%S+") do
+		local _, core, punct = splitWord(w)
+		local k = stripAccents(core:lower())
+		if isLaugh(k) then
+			laugh = true
+		else
+			table.insert(words, PT_ABBR[k] and (PT_ABBR[k] .. punct) or w)
+		end
+	end
+	local clean = table.concat(words, " ")
+	return clean, L().direct[normKey(stripAccents(clean))], laugh
+end
+
+local function naturalize(txt)
+	local t = " " .. txt:lower() .. " "
+	for _, p in ipairs(L().natural) do
+		local pat = p[1]:gsub("%p", "%%%0")
+		t = t:gsub("%f[%w']" .. pat .. "%f[^%w']", p[2])
+	end
+	t = t:gsub("^%s+", ""):gsub("%s+$", "")
+	t = t:gsub("%.$", "")
+	return t
+end
+
+local function getTone(text)
+	text = text:gsub("…", "...")
+	local tail = text:match("([%.%?!]+)%s*$") or ""
+	local tone = ""
+	if tail:find("%?") and tail:find("!") then tone = "?!"
+	elseif tail:find("%?%?") then tone = "??"
+	elseif tail:find("%?") then tone = "?"
+	elseif tail:find("%.%.") then tone = "..."
+	elseif tail:find("!!") then tone = "!!"
+	elseif tail:find("!") then tone = "!"
+	end
+	local letters = stripAccents(text):gsub("[^%a]", "")
+	local shout = #letters >= 3 and letters == letters:upper()
+	return tone, shout
+end
+
+local function applyTone(s, tone, shout)
+	if tone ~= "" then s = s:gsub("[%.%?!…]+%s*$", "") .. tone end
+	return shout and s:upper() or s
+end
+
+-- risadas (haha/jaja/hehe) viram kkkk na tradução
+local function fixPT(s)
+	return (s:gsub("%a+", function(w)
+		local l = w:lower()
+		if #l >= 4 and (l:match("^[ha]+$") or l:match("^[ja]+$") or l:match("^[he]+$") or l:match("^[je]+$"))
+			and l:find("[hj][ae]") then
+			return "kkkk"
+		end
+	end))
+end
+
+--==================== GOOGLE TRADUTOR ====================--
+local cache = {}
+local lastReq = 0
+local MIN_GAP = 0.25 -- intervalo mínimo entre requisições (segundos)
+
+local function urlEncode(s)
+	return (s:gsub("[^%w%-_%.~]", function(c) return string.format("%%%02X", string.byte(c)) end))
+end
+
+local function httpGet(url)
+	local waitT = MIN_GAP - (tick() - lastReq)
+	if waitT > 0 then task.wait(waitT) end
+	lastReq = tick()
+
+	local ok, res = pcall(httpRequest, { Url = url, Method = "GET" })
+	if not ok or not res then return nil, 0 end
+	local code = tonumber(res.StatusCode) or 0
+	if code ~= 200 or not res.Body then return nil, code end
+	local ok2, data = pcall(function() return HttpService:JSONDecode(res.Body) end)
+	if not ok2 then return nil, code end
+	return data, code
+end
+
+-- 1) Google (gtx)
+local function viaGtx(text, sl, tl)
+	local data, code = httpGet(("https://translate.googleapis.com/translate_a/single?client=gtx&sl=%s&tl=%s&dt=t&q=%s"):format(sl, tl, urlEncode(text)))
+	if type(data) ~= "table" then return nil, nil, code end
+	local parts = {}
+	for _, seg in ipairs(data[1] or {}) do
+		if type(seg) == "table" and type(seg[1]) == "string" then table.insert(parts, seg[1]) end
+	end
+	local r = table.concat(parts)
+	if r == "" then return nil, nil, code end
+	return r, data[3], code
+end
+
+-- 2) Google (dict-chrome-ex)
+local function viaClients5(text, sl, tl)
+	local data, code = httpGet(("https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=%s&tl=%s&q=%s"):format(sl, tl, urlEncode(text)))
+	if type(data) ~= "table" then return nil, nil, code end
+	local first = data[1]
+	if type(first) == "table" then return first[1], first[2] or (sl ~= "auto" and sl or nil), code end
+	if type(first) == "string" then return first, (sl ~= "auto" and sl or nil), code end
+	return nil, nil, code
+end
+
+-- 3) MyMemory (só com idioma de origem definido)
+local function viaMyMemory(text, sl, tl)
+	if sl == "auto" then return nil end
+	local data, code = httpGet(("https://api.mymemory.translated.net/get?q=%s&langpair=%s%%7C%s"):format(urlEncode(text), sl, tl))
+	local r = type(data) == "table" and data.responseData and data.responseData.translatedText
+	if type(r) ~= "string" or r == "" or r:find("MYMEMORY WARNING") then return nil, nil, code end
+	return r, sl, code
+end
+
+local PROVIDERS = { viaGtx, viaClients5, viaMyMemory }
+
+local function translate(text, sl, tl)
+	sl, tl = sl or "auto", tl or "pt"
+	local ck = sl .. "|" .. tl .. "|" .. text
+	if cache[ck] then return cache[ck][1], cache[ck][2] end
+	if not httpRequest then return nil, nil end
+
+	for attempt = 1, 3 do
+		for _, fn in ipairs(PROVIDERS) do
+			local ok, r, lang, code = pcall(fn, text, sl, tl)
+			if ok and r then
+				cache[ck] = { r, lang }
+				return r, lang
+			end
+			if code == 429 then task.wait(0.5 * attempt) end -- bloqueio temporário
+		end
+		task.wait(0.6 * attempt)
+	end
+	warn("[Tradutor] todas as tentativas falharam:", text)
+	return nil, nil
+end
+
+--==================== TRADUÇÃO RECEBIDA ====================--
+local speakerLang = {} -- lembra o idioma de cada jogador
+
+local function translateIncoming(raw, uid)
+	if not hasLetters(raw) then return nil, nil end
+
+	local gTxt, g = translate(raw, "auto", "pt")
+	local h, hs, second = guessLang(raw)
+	local words = wordCount(raw)
+	local strong = hs - second >= 2
+	local lang
+
+	if strong then
+		lang = h
+	elseif words <= 2 and hs == 0 and uid and speakerLang[uid] then
+		lang = speakerLang[uid]
+	elseif g == "en" or g == "es" or g == "pt" then
+		lang = (hs > second and words <= 4) and h or g
+	elseif hs > second then
+		lang = h
+	elseif uid and speakerLang[uid] then
+		lang = speakerLang[uid]
+	end
+
+	if lang ~= "en" and lang ~= "es" then return nil, lang end
+	if uid and ((hs > second and h == lang) or words >= 3) then speakerLang[uid] = lang end
+
+	local d = LANG[lang]
+	local text = expandSlang(raw, d.slang)
+
+	local key = text:lower():gsub("¿", ""):gsub("¡", ""):gsub("^%s+", ""):gsub("[%s%.!%?]+$", "")
+	if d.short[key] then return d.short[key], lang, text end
+
+	local out
+	if g == lang and text == raw and gTxt then
+		out = gTxt
+	else
+		out = translate(text, lang, "pt")
+	end
+	return fixPT(out or text), lang, text
+end
+
+--==================== ENVIAR PARA O CHAT ====================--
+local function sendChat(msg)
+	local ok, err = pcall(function()
+		local cfg = TextChatService:FindFirstChildOfClass("ChatInputBarConfiguration")
+		local ch = cfg and cfg.TargetTextChannel
+		if not ch then
+			local channels = TextChatService:FindFirstChild("TextChannels")
+			if channels then
+				ch = channels:FindFirstChild("RBXGeneral")
+				if not ch then
+					for _, c in ipairs(channels:GetChildren()) do
+						if c:IsA("TextChannel") then ch = c break end
+					end
+				end
+			end
+		end
+		if not ch then error("nenhum TextChannel encontrado") end
+		ch:SendAsync(msg)
+	end)
+	if ok then return true end
+	warn("[Tradutor] TextChatService falhou:", err)
+
+	local ok2, err2 = pcall(function()
+		local ev = ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents", 2)
+		ev = ev and ev:FindFirstChild("SayMessageRequest")
+		if not ev then error("SayMessageRequest não encontrado") end
+		ev:FireServer(msg, "All")
+	end)
+	if ok2 then return true end
+	warn("[Tradutor] Chat legado falhou:", err2)
+	return false
+end
+
+--==================== GUI ====================--
+local W, H = 360, 340
+local gui = Instance.new("ScreenGui")
+gui.Name, gui.ResetOnSpawn, gui.DisplayOrder = "ChatTranslator", false, 50
+gui.Parent = (gethui and gethui()) or player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Size = UDim2.fromOffset(W, H)
+main.Position = UDim2.new(1, -380, 0.5, -H / 2)
+main.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+main.BackgroundTransparency = 0.1
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+local st = Instance.new("UIStroke", main); st.Color = CONFIG.Accent; st.Transparency = 0.5
+
+local header = Instance.new("TextLabel")
+header.Size = UDim2.new(1, 0, 0, 32)
+header.BackgroundTransparency = 1
+header.Text = "  🌐 Tradutor EN ⇄ PT"
+header.Font = Enum.Font.GothamBold
+header.TextSize = 15
+header.TextColor3 = Color3.new(1, 1, 1)
+header.TextXAlignment = Enum.TextXAlignment.Left
+header.Parent = main
+
+local function headerBtn(txt, x, cb)
+	local b = Instance.new("TextButton")
+	b.Size, b.Position = UDim2.fromOffset(24, 24), UDim2.new(1, x, 0, 4)
+	b.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+	b.Text, b.Font, b.TextSize = txt, Enum.Font.GothamBold, 14
+	b.TextColor3 = Color3.new(1, 1, 1)
+	b.Parent = main
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+	b.MouseButton1Click:Connect(function() cb(b) end)
+	return b
+end
+
+local list = Instance.new("ScrollingFrame")
+list.Position = UDim2.fromOffset(8, 36)
+list.Size = UDim2.new(1, -16, 1, -84)
+list.BackgroundTransparency = 1
+list.BorderSizePixel = 0
+list.ScrollBarThickness = 4
+list.ScrollBarImageColor3 = CONFIG.Accent
+list.AutomaticCanvasSize = Enum.AutomaticSize.Y
+list.CanvasSize = UDim2.new()
+list.Parent = main
+local layout = Instance.new("UIListLayout", list)
+layout.Padding = UDim.new(0, 6)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local bar = Instance.new("Frame")
+bar.Size = UDim2.new(1, -16, 0, 34)
+bar.Position = UDim2.new(0, 8, 1, -42)
+bar.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
+bar.Parent = main
+Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 8)
+local bst = Instance.new("UIStroke", bar); bst.Color = CONFIG.Accent; bst.Transparency = 0.7
+
+local box = Instance.new("TextBox")
+box.Size = UDim2.new(1, -44, 1, 0)
+box.Position = UDim2.fromOffset(10, 0)
+box.BackgroundTransparency = 1
+box.ClearTextOnFocus = false
+box.PlaceholderColor3 = Color3.fromRGB(120, 120, 140)
+box.Text = ""
+box.Font = Enum.Font.Gotham
+box.TextSize = 14
+box.TextColor3 = Color3.new(1, 1, 1)
+box.TextXAlignment = Enum.TextXAlignment.Left
+box.ClipsDescendants = true
+box.Parent = bar
+
+local sendBtn = Instance.new("TextButton")
+sendBtn.Size = UDim2.fromOffset(28, 28)
+sendBtn.Position = UDim2.new(1, -31, 0, 3)
+sendBtn.BackgroundColor3 = CONFIG.Accent
+sendBtn.Text, sendBtn.Font, sendBtn.TextSize = ">", Enum.Font.GothamBold, 16
+sendBtn.TextColor3 = Color3.new(1, 1, 1)
+sendBtn.Parent = bar
+Instance.new("UICorner", sendBtn).CornerRadius = UDim.new(0, 6)
+
+local function placeholder()
+	return "Digite em português (→ " .. L().name .. ") e aperte Enter..."
+end
+
+--// 🔀 Chavinha EN / ES
+local switch = Instance.new("TextButton")
+switch.Size, switch.Position = UDim2.fromOffset(58, 22), UDim2.new(1, -150, 0, 5)
+switch.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+switch.Text, switch.AutoButtonColor = "", false
+switch.Parent = main
+Instance.new("UICorner", switch).CornerRadius = UDim.new(1, 0)
+
+local function swLabel(txt, x)
+	local t = Instance.new("TextLabel")
+	t.Size, t.Position = UDim2.fromOffset(29, 22), UDim2.fromOffset(x, 0)
+	t.BackgroundTransparency = 1
+	t.Text, t.Font, t.TextSize = txt, Enum.Font.GothamBold, 11
+	t.TextColor3 = Color3.fromRGB(150, 150, 170)
+	t.ZIndex = 3
+	t.Parent = switch
+	return t
+end
+
+local knob = Instance.new("Frame")
+knob.Size = UDim2.fromOffset(27, 18)
+knob.Position = UDim2.fromOffset(2, 2)
+knob.BackgroundColor3 = CONFIG.Accent
+knob.ZIndex = 2
+knob.Parent = switch
+Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+local lblEN, lblES = swLabel("EN", 0), swLabel("ES", 29)
+
+local function updateLang(animate)
+	local d = L()
+	local isES = CONFIG.Lang == "es"
+	local goal = { Position = UDim2.fromOffset(isES and 29 or 2, 2), BackgroundColor3 = d.color }
+	if animate then
+		TweenService:Create(knob, TweenInfo.new(0.18, Enum.EasingStyle.Quad), goal):Play()
+	else
+		knob.Position, knob.BackgroundColor3 = goal.Position, goal.BackgroundColor3
+	end
+	lblEN.TextColor3 = isES and Color3.fromRGB(150, 150, 170) or Color3.new(1, 1, 1)
+	lblES.TextColor3 = isES and Color3.new(1, 1, 1) or Color3.fromRGB(150, 150, 170)
+	header.Text = "  🌐 Tradutor " .. d.name .. " ⇄ PT"
+	box.PlaceholderText = placeholder()
+	st.Color, bst.Color, sendBtn.BackgroundColor3, list.ScrollBarImageColor3 = d.color, d.color, d.color, d.color
+end
+
+switch.MouseButton1Click:Connect(function()
+	CONFIG.Lang = (CONFIG.Lang == "en") and "es" or "en"
+	updateLang(true)
+end)
+updateLang(false)
+
+local minimized = false
+headerBtn("–", -86, function()
+	minimized = not minimized
+	list.Visible, bar.Visible = not minimized, not minimized
+	main.Size = minimized and UDim2.fromOffset(W, 32) or UDim2.fromOffset(W, H)
+end)
+headerBtn("🗑", -58, function()
+	for _, c in ipairs(list:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
+	table.clear(speakerLang)
+end)
+headerBtn(CONFIG.SlangMode and "😎" or "📝", -30, function(b)
+	CONFIG.SlangMode = not CONFIG.SlangMode
+	b.Text = CONFIG.SlangMode and "😎" or "📝"
+end)
+
+-- arrastar
+do
+	local dragging, startPos, startInput
+	header.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			dragging, startPos, startInput = true, main.Position, i.Position
+		end
+	end)
+	UIS.InputChanged:Connect(function(i)
+		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+			local d = i.Position - startInput
+			main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+		end
+	end)
+	UIS.InputEnded:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+end
+
+UIS.InputBegan:Connect(function(i, gp)
+	if not gp and i.KeyCode == CONFIG.ToggleKey then main.Visible = not main.Visible end
+end)
+
+local order = 0
+local function label(parent, text, color, font, size)
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.Size = UDim2.new(1, 0, 0, 0)
+	l.AutomaticSize = Enum.AutomaticSize.Y
+	l.TextWrapped, l.RichText = true, true
+	l.TextXAlignment = Enum.TextXAlignment.Left
+	l.Font, l.TextSize, l.TextColor3 = font, size, color
+	l.Text = text
+	l.Parent = parent
+	return l
+end
+
+local function escape(s)
+	s = s:gsub("&", "&amp;")
+	s = s:gsub("<", "&lt;")
+	s = s:gsub(">", "&gt;")
+	return s
+end
+
+local function addEntry(name, original, translated, outgoing, flag)
+	order += 1
+	local card = Instance.new("Frame")
+	card.BackgroundColor3 = outgoing and Color3.fromRGB(28, 36, 58) or Color3.fromRGB(30, 30, 42)
+	card.Size = UDim2.new(1, -6, 0, 0)
+	card.AutomaticSize = Enum.AutomaticSize.Y
+	card.LayoutOrder = order
+	card.Parent = list
+	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+	local pad = Instance.new("UIPadding", card)
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 6), UDim.new(0, 6)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 8), UDim.new(0, 8)
+	local cl = Instance.new("UIListLayout", card)
+	cl.Padding = UDim.new(0, 3)
+	cl.SortOrder = Enum.SortOrder.LayoutOrder
+
+	local nameColor = outgoing and "#ffcc66" or "#8fb0ff"
+	local l1 = label(card, string.format('<font color="%s"><b>%s:</b></font> %s', nameColor, escape(name), escape(original)),
+		Color3.fromRGB(200, 200, 210), Enum.Font.Gotham, 13)
+	l1.LayoutOrder = 1
+	local l2 = label(card, (flag or "🇧🇷") .. " " .. escape(translated),
+		Color3.fromRGB(120, 255, 160), Enum.Font.GothamMedium, 14)
+	l2.LayoutOrder = 2
+
+	local cards = {}
+	for _, c in ipairs(list:GetChildren()) do if c:IsA("Frame") then table.insert(cards, c) end end
+	if #cards > CONFIG.MaxMessages then
+		table.sort(cards, function(a, b) return a.LayoutOrder < b.LayoutOrder end)
+		cards[1]:Destroy()
+	end
+
+	task.defer(function() list.CanvasPosition = Vector2.new(0, list.AbsoluteCanvasSize.Y) end)
+end
+
+--==================== ENVIO (PT → EN/ES) ====================--
+local sending = false
+local function submit()
+	local text = box.Text
+	if sending or text:match("^%s*$") then return end
+	sending = true
+	box.Text = ""
+	box.PlaceholderText = "Traduzindo..."
+
+	task.spawn(function()
+		local tl = CONFIG.Lang
+		local d = LANG[tl]
+		local clean, direct, laugh = preparePT(text)
+		local out = direct
+
+		if not out and clean ~= "" then
+			out = translate(clean, "pt", tl)
+			if out and out ~= "" then
+				out = naturalize(out)
+				if CONFIG.SlangMode then out = slangify(out, d.reverse) end
+			end
+		end
+
+		local tone, shout = getTone(text)
+		if out and out ~= "" then
+			out = applyTone(out, tone, shout)
+			if tl == "es" then
+				out = out:gsub("^¿", ""):gsub("^¡", "")
+				if out:find("%?") then out = "¿" .. out
+				elseif out:find("!") then out = "¡" .. out end
+			end
+		end
+		if laugh then out = (out and out ~= "") and (out .. " " .. d.laugh) or d.laugh end
+
+		if out and out ~= "" then
+			if sendChat(out) then
+				addEntry("Você", text, out, true, d.flag)
+			else
+				addEntry("Erro", text, "não foi possível enviar ao chat (veja F9)", true)
+			end
+		else
+			addEntry("Erro", text, "falha na tradução", true)
+		end
+		box.PlaceholderText = placeholder()
+		sending = false
+	end)
+end
+
+box.FocusLost:Connect(function(enter) if enter then submit() end end)
+sendBtn.MouseButton1Click:Connect(submit)
+
+--==================== RECEBIMENTO (EN/ES → PT) ====================--
+local function onMessage(speaker, text)
+	if not text or text:match("^%s*$") then return end
+	if speaker == player and not CONFIG.ShowOwn then return end
+	text = text:gsub("<[^>]+>", "")
+
+	task.spawn(function()
+		local uid = speaker and speaker.UserId
+		local translated, lang, expanded = translateIncoming(text, uid)
+		if lang ~= "en" and lang ~= "es" then return end
+		local name = (speaker and speaker.DisplayName or "?") .. " " .. LANG[lang].flag
+		addEntry(name, text, translated or expanded)
+	end)
+end
+
+if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+	TextChatService.MessageReceived:Connect(function(msg)
+		local src = msg.TextSource
+		if not src then return end
+		onMessage(Players:GetPlayerByUserId(src.UserId), msg.Text)
+	end)
+else
+	local function hook(p) p.Chatted:Connect(function(m) onMessage(p, m) end) end
+	for _, p in ipairs(Players:GetPlayers()) do hook(p) end
+	Players.PlayerAdded:Connect(hook)
+end
+
+print("🌐 Tradutor EN/ES v3.2 ativo | RightShift: mostrar/ocultar" .. (httpRequest and "" or " (sem 'request': tradução indisponível)"))
