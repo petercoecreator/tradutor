@@ -35,12 +35,10 @@ do
 	intro.Name, intro.ResetOnSpawn, intro.DisplayOrder, intro.IgnoreGuiInset = "TranslatorIntro", false, 100, true
 	intro.Parent = (gethui and gethui()) or player:WaitForChild("PlayerGui")
 
-	-- desfoque
 	local blur = Instance.new("BlurEffect")
 	blur.Size, blur.Parent = 0, Lighting
 	tw(blur, 0.6, { Size = 20 })
 
-	-- fundo
 	local bg = Instance.new("Frame")
 	bg.Size, bg.BackgroundColor3, bg.BackgroundTransparency = UDim2.fromScale(1, 1), Color3.fromRGB(8, 8, 14), 1
 	bg.Parent = intro
@@ -50,7 +48,6 @@ do
 	tw(bg, 0.6, { BackgroundTransparency = 0.25 })
 	tw(bgGrad, 5, { Rotation = 225 }, Enum.EasingStyle.Linear)
 
-	-- partículas
 	local running = true
 	task.spawn(function()
 		while running do
@@ -69,7 +66,6 @@ do
 		end
 	end)
 
-	-- cartão
 	local card = Instance.new("Frame")
 	card.AnchorPoint, card.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.65)
 	card.Size, card.BackgroundColor3 = UDim2.fromOffset(350, 320), Color3.fromRGB(16, 16, 22)
@@ -80,7 +76,6 @@ do
 	local csGrad = duoGrad(cs)
 	local scale = Instance.new("UIScale", card); scale.Scale = 0
 
-	-- brilho que atravessa (não vaza)
 	local shine = Instance.new("Frame")
 	shine.Size, shine.BackgroundColor3 = UDim2.fromScale(1, 1), WHITE
 	shine.BackgroundTransparency, shine.BorderSizePixel, shine.ZIndex = 0, 0, 10
@@ -102,7 +97,6 @@ do
 		tw(shineGrad, t, { Offset = Vector2.new(1, 0) }, Enum.EasingStyle.Quad)
 	end
 
-	--===== TOPO: JOGADOR =====--
 	local glow = Instance.new("Frame")
 	glow.AnchorPoint, glow.Position = Vector2.new(0.5, 0.5), UDim2.new(0.5, 0, 0, 78)
 	glow.Size, glow.BackgroundColor3, glow.BackgroundTransparency = UDim2.fromOffset(130, 130), BLUE, 0.7
@@ -141,7 +135,6 @@ do
 	local nameGrad = duoGrad(name)
 	local nameScale = Instance.new("UIScale", name); nameScale.Scale = 0.5
 
-	-- barra de carregamento
 	local barBg = Instance.new("Frame")
 	barBg.AnchorPoint, barBg.Position = Vector2.new(0.5, 0), UDim2.new(0.5, 0, 0, 218)
 	barBg.Size, barBg.BackgroundColor3, barBg.BackgroundTransparency = UDim2.fromOffset(260, 6), Color3.fromRGB(40, 40, 55), 1
@@ -154,7 +147,6 @@ do
 	duoGrad(fill)
 	local pct = txt(card, "0%", UDim2.new(0.5, 0, 0, 228), 11, Enum.Font.GothamMedium, Color3.fromRGB(150, 150, 170))
 
-	--===== RODAPÉ: CRIADOR =====--
 	local line = Instance.new("Frame")
 	line.AnchorPoint, line.Position = Vector2.new(0.5, 0), UDim2.new(0.5, 0, 0, 258)
 	line.Size, line.BackgroundColor3, line.BorderSizePixel = UDim2.fromOffset(0, 1), Color3.fromRGB(60, 60, 80), 0
@@ -185,7 +177,6 @@ do
 	local cName = txt(credit, "petercoe1", UDim2.fromOffset(38, 13), 13, Enum.Font.GothamBold,
 		Color3.fromRGB(200, 200, 215), Enum.TextXAlignment.Left)
 
-	-- loops
 	task.spawn(function()
 		while running do
 			ringGrad.Rotation = (ringGrad.Rotation + 5) % 360
@@ -199,7 +190,6 @@ do
 	nameGrad.Offset = Vector2.new(-1, 0)
 	tw(nameGrad, 1.5, { Offset = Vector2.new(1, 0) }, Enum.EasingStyle.Linear, nil, -1)
 
-	--===== SEQUÊNCIA =====--
 	tw(card, 0.7, { Position = UDim2.fromScale(0.5, 0.5), Rotation = 0 }, Enum.EasingStyle.Back)
 	tw(scale, 0.7, { Scale = 1 }, Enum.EasingStyle.Back).Completed:Wait()
 	playShine(0.8)
@@ -234,7 +224,6 @@ do
 	playShine(0.6)
 	task.wait(0.7)
 
-	-- saída
 	tw(ringScale, 0.3, { Scale = 1.2 }, Enum.EasingStyle.Quad)
 	task.wait(0.15)
 	tw(card, 0.5, { Rotation = 10, Position = UDim2.fromScale(0.5, 0.4) }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
@@ -247,13 +236,14 @@ do
 	intro:Destroy()
 end
 --==================== FIM DA INTRO ====================--
--- 🌐 Tradutor de Chat EN/ES ⇄ PT  (v3.2)
+-- 🌐 Tradutor de Chat EN/ES ⇄ PT  (v3.5)
 local Players           = game:GetService("Players")
 local HttpService       = game:GetService("HttpService")
 local TextChatService   = game:GetService("TextChatService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIS               = game:GetService("UserInputService")
 local TweenService      = game:GetService("TweenService")
+local TextService       = game:GetService("TextService")
 
 local player = Players.LocalPlayer
 local httpRequest = (syn and syn.request) or http_request or request or (fluxus and fluxus.request)
@@ -266,16 +256,15 @@ local CONFIG = {
 	ToggleKey   = Enum.KeyCode.RightShift,
 	Accent      = Color3.fromRGB(90, 140, 255),
 	AccentES    = Color3.fromRGB(235, 90, 70),
+	DictSize    = math.huge, -- carrega a lista inteira (~245 mil)
 }
 
 --======================================================--
 --                       INGLÊS                         --
 --======================================================--
 local SLANG = {
-	-- risadas
 	lol="haha", lmao="hahaha", lmfao="hahaha", rofl="hahaha", xd="haha", kek="haha", lul="haha",
 	lel="haha", lolol="hahaha", ded="dying of laughter", dead="dying of laughter",
-	-- expressões
 	omg="oh my god", omfg="oh my god", wtf="what the fuck", wth="what the hell", tf="the fuck",
 	smh="shaking my head", ffs="for fuck's sake", jk="just kidding", jks="just kidding",
 	idk="I don't know", idek="I don't even know", idc="I don't care", idgaf="I don't give a fuck",
@@ -296,17 +285,14 @@ local SLANG = {
 	bday="birthday", congrats="congratulations", grats="congratulations", gratz="congratulations",
 	gz="congratulations", rip="rest in peace", sry="sorry", srry="sorry", soz="sorry", mb="my bad",
 	wtv="whatever", wtvr="whatever", whatevs="whatever", oof="ouch", yikes="yikes",
-	-- perguntas
 	wyd="what are you doing", wbu="what about you", hbu="how about you", wby="what about you",
 	wsp="what's up", wassup="what's up", sup="what's up", wu="what's up", hru="how are you",
 	hyd="how are you doing", wya="where are you at", wru="where are you", wdym="what do you mean",
 	wym="what you mean", whatcha="what are you", watcha="what are you", whats="what's",
 	whos="who's", wheres="where's", hows="how's", thats="that's",
-	-- contrações sem apóstrofo
 	im="I'm", dont="don't", cant="can't", wont="won't", didnt="didn't", doesnt="doesn't",
 	isnt="isn't", arent="aren't", wasnt="wasn't", ive="I've", youre="you're", theyre="they're",
 	shouldnt="shouldn't", wouldnt="wouldn't", couldnt="couldn't", havent="haven't",
-	-- informais
 	ig="I guess", istg="I swear to god", hmu="contact me", oml="oh my lord", ong="on god",
 	deadass="seriously", goat="greatest of all time", mid="mediocre", cap="lie", nocap="no lie",
 	bet="okay deal", lowkey="kind of", highkey="really", fam="friend", bro="bro", bruh="bro seriously",
@@ -327,12 +313,10 @@ local SLANG = {
 	b4="before", ["2day"]="today", ["2moro"]="tomorrow", tmrw="tomorrow", tmr="tomorrow",
 	l8r="later", l8="late", gr8="great", m8="mate", h8="hate", w8="wait", str8="straight",
 	any1="anyone", some1="someone", no1="no one", ne1="anyone", every1="everyone",
-	-- gírias
 	based="based", cringe="cringe", ratio="ratio", salty="bitter", toxic="toxic", simp="simp",
 	rizz="charm", sigma="sigma", slay="nailed it", vibe="vibe", vibes="vibes", yeet="throw",
 	bussin="really good", drip="style", sus="suspicious", fire="amazing", lit="amazing",
 	goated="the best", cooked="done for", glazing="overpraising", aura="aura", skibidi="silly",
-	-- jogos
 	gg="good game", ggs="good games", ggwp="good game well played", ggez="good game easy",
 	ez="easy", gl="good luck", hf="have fun", glhf="good luck have fun", wp="well played",
 	nt="nice try", ns="nice shot", gj="good job", ff="give up", w="win", l="loss", f="rip",
@@ -343,7 +327,6 @@ local SLANG = {
 	tp="teleport", lvl="level", hp="health", dmg="damage", xp="experience", inv="inventory",
 	obby="obstacle course", bux="robux", mod="moderator", mods="moderators", sv="server",
 	srv="server", lag="lag", laggy="laggy", npc="npc", smurf="smurf", rage="rage", ragequit="rage quit",
-	-- palavrões
 	stfu="shut the fuck up", gtfo="get the fuck out", fu="fuck you", fk="fuck", fck="fuck",
 	fuk="fuck", sht="shit", af="as fuck", mf="motherfucker", mofo="motherfucker",
 	pos="piece of shit", sob="son of a bitch", bs="bullshit", kys="kill yourself",
@@ -451,10 +434,8 @@ local SHORT = {
 --                       ESPANHOL                       --
 --======================================================--
 local SLANG_ES = {
-	-- risadas
 	xd="jaja", jsjs="jaja", jsjsjs="jaja", lol="jaja", jaja="jaja", jajaja="jajaja",
 	jeje="jaja", jiji="jaja", jajsj="jaja", ksks="jaja",
-	-- abreviações
 	q="que", k="que", ke="que", qe="que", xq="porque", pq="porque", porq="porque", pk="porque",
 	xk="porque", pqe="porque", x="por", xa="para", pa="para", pal="para el", d="de",
 	tmb="también", tb="también", tbn="también", tmbn="también", tbm="también",
@@ -471,14 +452,11 @@ local SLANG_ES = {
 	["mñn"]="mañana", ["mñ"]="mañana", ["mñna"]="mañana", mna="mañana", finde="fin de semana",
 	cole="colegio", profe="profesor", peli="película", compu="computadora", celu="celular",
 	cel="celular", xfin="por fin", bss="besos", bsos="besos",
-	-- saudações
 	ola="hola", holi="hola", holis="hola", wenas="buenas", wena="buena", salu2="saludos",
 	qtal="qué tal", qonda="qué onda", qhay="qué hay", qpx="qué pasa", kpx="qué pasa",
 	qpasa="qué pasa", qhaces="qué haces", qacs="qué haces",
-	-- sim / não
 	sip="sí", sep="sí", simon="sí", zi="sí", see="sí", nop="no", nel="no", nah="no",
 	obvio="obviamente", obvi="obviamente", va="vale", oki="vale", okis="vale", dale="vale",
-	-- gírias regionais
 	wey="amigo", ["güey"]="amigo", guey="amigo", we="amigo", hno="hermano", pana="amigo",
 	bro="hermano", carnal="hermano", compa="amigo", parce="amigo", parcero="amigo",
 	weon="amigo", ["weón"]="amigo", wn="amigo", ["tío"]="amigo", tio="amigo", ["tía"]="chica",
@@ -491,7 +469,6 @@ local SLANG_ES = {
 	cabron="desgraciado", ["cabrón"]="desgraciado", culiao="maldito",
 	nmms="no puede ser", nms="no puede ser", nmm="no puede ser", ptm="maldita sea",
 	ctm="maldita sea", alv="a la mierda", hdp="hijo de puta", hpta="hijo de puta",
-	-- jogos
 	gg="buena partida", ez="fácil", noob="novato", nub="novato", manco="malo", mancos="malos",
 	bot="malo", pro="profesional", afk="ausente", lag="lag", laguea="tiene lag",
 	lagueado="con lag", hacker="tramposo", hax="trampas", chiter="tramposo", cheater="tramposo",
@@ -728,11 +705,108 @@ local PT_ABBR = {
 	qq="qualquer", dnv="de novo", dms="demais", nd="nada", nda="nada", hr="hora", hrs="horas",
 	mn="mano", mlk="moleque", pprt="papo reto", slk="sério", krl="caralho", crl="caralho",
 	pqp="puta que pariu", fdp="filho da puta", vsf="vai se foder", tnc="tomar no cu",
+	ent="então", entt="então", tlgd="tá ligado", bjo="beijo",
+	nois="nós", noiz="nós", ss="sim", s="sim", nsei="não sei",
 }
 
 local function isLaugh(k)
 	return (k:match("^k+$") and #k >= 3) or (k:match("^[ha]+$") and #k >= 4 and k:find("ha"))
 		or (k:match("^[rs]+$") and #k >= 4)
+end
+
+--==================== CORRETOR DE DIGITAÇÃO ====================--
+local PT_DICT_RAW = [[
+então não você vocês também obrigado obrigada está estou estava estão tá tô até já lá cá
+só né é pé fé nós será sério ótimo péssimo fácil difícil possível impossível música
+amanhã ontem hoje agora depois antes sempre nunca talvez porque porquê quê cadê alguém
+ninguém saudade saudades beleza valeu verdade mentira começar começou começa
+coração irmão irmã mãe pai avó avô família amigo amiga pessoal galera jogar jogando
+jogo jogou ganhar ganhei ganhou perder perdi perdeu trocar troca vamos vamo bora
+espera esperar quero queria quer pode posso podemos vou vai vem venha fazer fazendo
+fiz fez falar falando falei falou entendi entender entendeu acho achei sabe sabia sei
+muito muita muitos pouco pouca melhor pior legal bonito bonita feio
+lindo linda obrigação educação atenção informação situação ação opção questão razão
+aqui ali onde quando quanto quantos como qual quais quem nada tudo todos todas
+servidor jogador amizade dinheiro comprar vender preço grátis sozinho junto
+]]
+
+local PT_DICT = {}
+local BUCKET  = {} -- primeira letra -> lista de palavras
+local ignored = {} -- palavras recusadas no balão
+
+local function addDict(w)
+	local k = stripAccents(w:lower())
+	if PT_DICT[k] then return end
+	PT_DICT[k] = w
+	local c = k:sub(1, 1)
+	BUCKET[c] = BUCKET[c] or {}
+	table.insert(BUCKET[c], k)
+end
+for w in PT_DICT_RAW:gmatch("%S+") do addDict(w) end
+for w in pairs(PT_W) do addDict(w) end
+for k in pairs(PT_DIRECT) do for w in k:gmatch("%S+") do addDict(w) end end
+
+--// 📚 Baixa ~245 mil palavras do português
+local DICT_URL = "https://raw.githubusercontent.com/pythonprobr/palavras/master/palavras.txt"
+task.spawn(function()
+	if not httpRequest then return end
+	local ok, res = pcall(httpRequest, { Url = DICT_URL, Method = "GET" })
+	if not ok or not res or tonumber(res.StatusCode) ~= 200 or not res.Body then
+		warn("[Tradutor] não foi possível baixar o dicionário, usando a lista interna")
+		return
+	end
+	local n = 0
+	for line in res.Body:gmatch("[^\r\n]+") do
+		local w = line:match("^(%S+)")
+		if w and #w >= 2 and not w:find("[%d%p]") then
+			addDict(w)
+			n += 1
+			if n % 10000 == 0 then task.wait() end -- não trava ao carregar
+			if n >= CONFIG.DictSize then break end
+		end
+	end
+	print("📚 Dicionário carregado: " .. n .. " palavras")
+end)
+
+local function editDist(a, b, max)
+	local la, lb = #a, #b
+	if math.abs(la - lb) > max then return max + 1 end
+	local prev2, prev, cur = {}, {}, {}
+	for j = 0, lb do prev[j] = j end
+	for i = 1, la do
+		cur = { [0] = i }
+		local rowMin = i
+		for j = 1, lb do
+			local cost = (a:sub(i, i) == b:sub(j, j)) and 0 or 1
+			local v = math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+			if i > 1 and j > 1 and a:sub(i, i) == b:sub(j - 1, j - 1) and a:sub(i - 1, i - 1) == b:sub(j, j) then
+				v = math.min(v, prev2[j - 2] + 1)
+			end
+			cur[j] = v
+			if v < rowMin then rowMin = v end
+		end
+		if rowMin > max then return max + 1 end
+		prev2, prev = prev, cur
+	end
+	return prev[lb]
+end
+
+local function fixTypo(core, k)
+	if PT_DICT[k] then return PT_DICT[k] end
+	if #k < 4 or not k:match("^%a+$") then return nil end
+	local hadAccent = core:lower() ~= k
+	local max = (hadAccent or #k >= 8) and 2 or 1
+	if not hadAccent and #k < 5 then return nil end
+	local best, bestD = nil, max + 1
+	for i, norm in ipairs(BUCKET[k:sub(1, 1)] or {}) do
+		if math.abs(#norm - #k) <= max then
+			local d = editDist(k, norm, max)
+			if d < bestD then best, bestD = PT_DICT[norm], d end
+			if d == 1 and max == 1 then break end
+		end
+		if i % 5000 == 0 then task.wait() end -- evita travar
+	end
+	return best
 end
 
 local function preparePT(text)
@@ -782,7 +856,6 @@ local function applyTone(s, tone, shout)
 	return shout and s:upper() or s
 end
 
--- risadas (haha/jaja/hehe) viram kkkk na tradução
 local function fixPT(s)
 	return (s:gsub("%a+", function(w)
 		local l = w:lower()
@@ -796,7 +869,7 @@ end
 --==================== GOOGLE TRADUTOR ====================--
 local cache = {}
 local lastReq = 0
-local MIN_GAP = 0.25 -- intervalo mínimo entre requisições (segundos)
+local MIN_GAP = 0.25
 
 local function urlEncode(s)
 	return (s:gsub("[^%w%-_%.~]", function(c) return string.format("%%%02X", string.byte(c)) end))
@@ -816,7 +889,6 @@ local function httpGet(url)
 	return data, code
 end
 
--- 1) Google (gtx)
 local function viaGtx(text, sl, tl)
 	local data, code = httpGet(("https://translate.googleapis.com/translate_a/single?client=gtx&sl=%s&tl=%s&dt=t&q=%s"):format(sl, tl, urlEncode(text)))
 	if type(data) ~= "table" then return nil, nil, code end
@@ -829,7 +901,6 @@ local function viaGtx(text, sl, tl)
 	return r, data[3], code
 end
 
--- 2) Google (dict-chrome-ex)
 local function viaClients5(text, sl, tl)
 	local data, code = httpGet(("https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=%s&tl=%s&q=%s"):format(sl, tl, urlEncode(text)))
 	if type(data) ~= "table" then return nil, nil, code end
@@ -839,7 +910,6 @@ local function viaClients5(text, sl, tl)
 	return nil, nil, code
 end
 
--- 3) MyMemory (só com idioma de origem definido)
 local function viaMyMemory(text, sl, tl)
 	if sl == "auto" then return nil end
 	local data, code = httpGet(("https://api.mymemory.translated.net/get?q=%s&langpair=%s%%7C%s"):format(urlEncode(text), sl, tl))
@@ -863,7 +933,7 @@ local function translate(text, sl, tl)
 				cache[ck] = { r, lang }
 				return r, lang
 			end
-			if code == 429 then task.wait(0.5 * attempt) end -- bloqueio temporário
+			if code == 429 then task.wait(0.5 * attempt) end
 		end
 		task.wait(0.6 * attempt)
 	end
@@ -872,7 +942,7 @@ local function translate(text, sl, tl)
 end
 
 --==================== TRADUÇÃO RECEBIDA ====================--
-local speakerLang = {} -- lembra o idioma de cada jogador
+local speakerLang = {}
 
 local function translateIncoming(raw, uid)
 	if not hasLetters(raw) then return nil, nil end
@@ -1061,6 +1131,8 @@ Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
 
 local lblEN, lblES = swLabel("EN", 0), swLabel("ES", 29)
 
+local pst -- borda do balão (definida mais abaixo)
+
 local function updateLang(animate)
 	local d = L()
 	local isES = CONFIG.Lang == "es"
@@ -1073,174 +1145,171 @@ local function updateLang(animate)
 	lblEN.TextColor3 = isES and Color3.fromRGB(150, 150, 170) or Color3.new(1, 1, 1)
 	lblES.TextColor3 = isES and Color3.new(1, 1, 1) or Color3.fromRGB(150, 150, 170)
 	header.Text = "  🌐 Tradutor " .. d.name .. " ⇄ PT"
+	st.Color, bst.Color, sendBtn.BackgroundColor3 = d.color, d.color, d.color
+	list.ScrollBarImageColor3 = d.color
 	box.PlaceholderText = placeholder()
-	st.Color, bst.Color, sendBtn.BackgroundColor3, list.ScrollBarImageColor3 = d.color, d.color, d.color, d.color
+	if pst then pst.Color = d.color end
 end
 
 switch.MouseButton1Click:Connect(function()
-	CONFIG.Lang = (CONFIG.Lang == "en") and "es" or "en"
+	CONFIG.Lang = CONFIG.Lang == "en" and "es" or "en"
 	updateLang(true)
 end)
-updateLang(false)
 
-local minimized = false
-headerBtn("–", -86, function()
-	minimized = not minimized
-	list.Visible, bar.Visible = not minimized, not minimized
-	main.Size = minimized and UDim2.fromOffset(W, 32) or UDim2.fromOffset(W, H)
-end)
-headerBtn("🗑", -58, function()
-	for _, c in ipairs(list:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
-	table.clear(speakerLang)
-end)
-headerBtn(CONFIG.SlangMode and "😎" or "📝", -30, function(b)
-	CONFIG.SlangMode = not CONFIG.SlangMode
-	b.Text = CONFIG.SlangMode and "😎" or "📝"
-end)
-
--- arrastar
-do
-	local dragging, startPos, startInput
-	header.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-			dragging, startPos, startInput = true, main.Position, i.Position
-		end
-	end)
-	UIS.InputChanged:Connect(function(i)
-		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-			local d = i.Position - startInput
-			main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
-		end
-	end)
-	UIS.InputEnded:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
-	end)
-end
-
-UIS.InputBegan:Connect(function(i, gp)
-	if not gp and i.KeyCode == CONFIG.ToggleKey then main.Visible = not main.Visible end
-end)
-
+--==================== MENSAGENS ====================--
 local order = 0
-local function label(parent, text, color, font, size)
-	local l = Instance.new("TextLabel")
-	l.BackgroundTransparency = 1
-	l.Size = UDim2.new(1, 0, 0, 0)
-	l.AutomaticSize = Enum.AutomaticSize.Y
-	l.TextWrapped, l.RichText = true, true
-	l.TextXAlignment = Enum.TextXAlignment.Left
-	l.Font, l.TextSize, l.TextColor3 = font, size, color
-	l.Text = text
-	l.Parent = parent
-	return l
+local function esc(s)
+	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 end
 
-local function escape(s)
-	s = s:gsub("&", "&amp;")
-	s = s:gsub("<", "&lt;")
-	s = s:gsub(">", "&gt;")
-	return s
-end
-
-local function addEntry(name, original, translated, outgoing, flag)
+local function addMessage(author, original, translated, color)
 	order += 1
-	local card = Instance.new("Frame")
-	card.BackgroundColor3 = outgoing and Color3.fromRGB(28, 36, 58) or Color3.fromRGB(30, 30, 42)
-	card.Size = UDim2.new(1, -6, 0, 0)
-	card.AutomaticSize = Enum.AutomaticSize.Y
-	card.LayoutOrder = order
-	card.Parent = list
-	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
-	local pad = Instance.new("UIPadding", card)
-	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 6), UDim.new(0, 6)
-	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 8), UDim.new(0, 8)
-	local cl = Instance.new("UIListLayout", card)
-	cl.Padding = UDim.new(0, 3)
-	cl.SortOrder = Enum.SortOrder.LayoutOrder
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(1, -6, 0, 0)
+	lbl.AutomaticSize = Enum.AutomaticSize.Y
+	lbl.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
+	lbl.BackgroundTransparency = 0.2
+	lbl.RichText, lbl.TextWrapped = true, true
+	lbl.Font, lbl.TextSize = Enum.Font.Gotham, 13
+	lbl.TextColor3 = Color3.new(1, 1, 1)
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.LayoutOrder = order
+	local hex = color:ToHex()
+	lbl.Text = ('<b><font color="#%s">%s</font></b>: %s\n<font color="#8c8ca0" size="11">%s</font>')
+		:format(hex, esc(author), esc(translated), esc(original))
+	lbl.Parent = list
+	Instance.new("UICorner", lbl).CornerRadius = UDim.new(0, 6)
+	local pad = Instance.new("UIPadding", lbl)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 6), UDim.new(0, 6)
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 4), UDim.new(0, 4)
 
-	local nameColor = outgoing and "#ffcc66" or "#8fb0ff"
-	local l1 = label(card, string.format('<font color="%s"><b>%s:</b></font> %s', nameColor, escape(name), escape(original)),
-		Color3.fromRGB(200, 200, 210), Enum.Font.Gotham, 13)
-	l1.LayoutOrder = 1
-	local l2 = label(card, (flag or "🇧🇷") .. " " .. escape(translated),
-		Color3.fromRGB(120, 255, 160), Enum.Font.GothamMedium, 14)
-	l2.LayoutOrder = 2
-
-	local cards = {}
-	for _, c in ipairs(list:GetChildren()) do if c:IsA("Frame") then table.insert(cards, c) end end
-	if #cards > CONFIG.MaxMessages then
-		table.sort(cards, function(a, b) return a.LayoutOrder < b.LayoutOrder end)
-		cards[1]:Destroy()
+	local items = {}
+	for _, c in ipairs(list:GetChildren()) do
+		if c:IsA("TextLabel") then table.insert(items, c) end
 	end
+	table.sort(items, function(a, b) return a.LayoutOrder < b.LayoutOrder end)
+	for i = 1, #items - CONFIG.MaxMessages do items[i]:Destroy() end
 
-	task.defer(function() list.CanvasPosition = Vector2.new(0, list.AbsoluteCanvasSize.Y) end)
-end
-
---==================== ENVIO (PT → EN/ES) ====================--
-local sending = false
-local function submit()
-	local text = box.Text
-	if sending or text:match("^%s*$") then return end
-	sending = true
-	box.Text = ""
-	box.PlaceholderText = "Traduzindo..."
-
-	task.spawn(function()
-		local tl = CONFIG.Lang
-		local d = LANG[tl]
-		local clean, direct, laugh = preparePT(text)
-		local out = direct
-
-		if not out and clean ~= "" then
-			out = translate(clean, "pt", tl)
-			if out and out ~= "" then
-				out = naturalize(out)
-				if CONFIG.SlangMode then out = slangify(out, d.reverse) end
-			end
-		end
-
-		local tone, shout = getTone(text)
-		if out and out ~= "" then
-			out = applyTone(out, tone, shout)
-			if tl == "es" then
-				out = out:gsub("^¿", ""):gsub("^¡", "")
-				if out:find("%?") then out = "¿" .. out
-				elseif out:find("!") then out = "¡" .. out end
-			end
-		end
-		if laugh then out = (out and out ~= "") and (out .. " " .. d.laugh) or d.laugh end
-
-		if out and out ~= "" then
-			if sendChat(out) then
-				addEntry("Você", text, out, true, d.flag)
-			else
-				addEntry("Erro", text, "não foi possível enviar ao chat (veja F9)", true)
-			end
-		else
-			addEntry("Erro", text, "falha na tradução", true)
-		end
-		box.PlaceholderText = placeholder()
-		sending = false
+	task.defer(function()
+		list.CanvasPosition = Vector2.new(0, list.AbsoluteCanvasSize.Y)
 	end)
 end
 
-box.FocusLost:Connect(function(enter) if enter then submit() end end)
-sendBtn.MouseButton1Click:Connect(submit)
+--==================== BALÃO DE CORREÇÃO ====================--
+local pop = Instance.new("Frame")
+pop.Size = UDim2.new(1, -16, 0, 28)
+pop.Position = UDim2.new(0, 8, 1, -76)
+pop.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
+pop.Visible, pop.ZIndex = false, 5
+pop.Parent = main
+Instance.new("UICorner", pop).CornerRadius = UDim.new(0, 8)
+pst = Instance.new("UIStroke", pop); pst.Color = CONFIG.Accent
 
---==================== RECEBIMENTO (EN/ES → PT) ====================--
-local function onMessage(speaker, text)
-	if not text or text:match("^%s*$") then return end
-	if speaker == player and not CONFIG.ShowOwn then return end
-	text = text:gsub("<[^>]+>", "")
+local popTxt = Instance.new("TextLabel")
+popTxt.Size, popTxt.Position = UDim2.new(1, -70, 1, 0), UDim2.fromOffset(8, 0)
+popTxt.BackgroundTransparency = 1
+popTxt.RichText, popTxt.Font, popTxt.TextSize = true, Enum.Font.Gotham, 12
+popTxt.TextColor3 = Color3.new(1, 1, 1)
+popTxt.TextXAlignment = Enum.TextXAlignment.Left
+popTxt.ZIndex = 6
+popTxt.Parent = pop
 
+local function popBtn(t, x, col)
+	local b = Instance.new("TextButton")
+	b.Size, b.Position = UDim2.fromOffset(26, 22), UDim2.new(1, x, 0, 3)
+	b.BackgroundColor3, b.Text = col, t
+	b.Font, b.TextSize, b.TextColor3 = Enum.Font.GothamBold, 13, Color3.new(1, 1, 1)
+	b.ZIndex = 6
+	b.Parent = pop
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+	return b
+end
+local okBtn = popBtn("✓", -60, Color3.fromRGB(60, 170, 90))
+local noBtn = popBtn("✕", -30, Color3.fromRGB(170, 60, 60))
+
+local sugg -- { before, pre, fix, punct, key }
+
+local function hidePop() sugg = nil; pop.Visible = false end
+
+local function acceptSugg()
+	if not sugg then return end
+	box.Text = sugg.before .. sugg.pre .. sugg.fix .. sugg.punct .. " "
+	box.CursorPosition = #box.Text + 1
+	hidePop()
+end
+
+okBtn.MouseButton1Click:Connect(acceptSugg)
+noBtn.MouseButton1Click:Connect(function()
+	if sugg then ignored[sugg.key] = true end
+	hidePop()
+end)
+
+box:GetPropertyChangedSignal("Text"):Connect(function()
+	local text = box.Text
+	if text:sub(-1) ~= " " then
+		if text == "" then hidePop() end
+		return
+	end
+	local before, word = text:match("^(.-)(%S+)%s$")
+	if not word then return hidePop() end
+	local pre, core, punct = splitWord(word)
+	local k = stripAccents(core:lower())
+	if ignored[k] or PT_DICT[k] or PT_ABBR[k] or isLaugh(k) then return hidePop() end
+	local fix = fixTypo(core, k)
+	if box.Text ~= text then return end -- texto mudou durante a busca
+	if not fix then return hidePop() end
+	sugg = { before = before, pre = pre, fix = fix, punct = punct, key = k }
+	popTxt.Text = ('Você quis dizer <b>%s</b>? <font color="#8c8ca0">(Tab)</font>'):format(esc(fix))
+	pop.Visible = true
+end)
+
+--==================== ENVIO ====================--
+local function outgoing(raw)
+	local tone, shout = getTone(raw)
+	local clean, direct, laugh = preparePT(raw)
+	local out = ""
+	if direct then
+		out = direct
+	elseif hasLetters(clean) then
+		local r = translate(clean, "pt", CONFIG.Lang)
+		if not r then return nil end
+		out = naturalize(r)
+		if CONFIG.SlangMode then out = slangify(out, L().reverse) end
+	end
+	if laugh then out = out == "" and L().laugh or (out .. " " .. L().laugh) end
+	if out == "" then return nil end
+	return applyTone(out, tone, shout)
+end
+
+local busy = false
+local function doSend()
+	local raw = box.Text:gsub("^%s+", ""):gsub("%s+$", "")
+	if raw == "" or busy then return end
+	busy = true
+	box.Text = ""
+	hidePop()
 	task.spawn(function()
-		local uid = speaker and speaker.UserId
-		local translated, lang, expanded = translateIncoming(text, uid)
-		if lang ~= "en" and lang ~= "es" then return end
-		local name = (speaker and speaker.DisplayName or "?") .. " " .. LANG[lang].flag
-		addEntry(name, text, translated or expanded)
+		local out = outgoing(raw)
+		if out and sendChat(out) then
+			addMessage("Você → " .. L().name, raw, out, L().color)
+		else
+			addMessage("Erro", raw, "não foi possível traduzir/enviar", Color3.fromRGB(200, 80, 80))
+		end
+		busy = false
+	end)
+end
+
+box.FocusLost:Connect(function(enter) if enter then doSend() end end)
+sendBtn.MouseButton1Click:Connect(doSend)
+
+--==================== RECEBER ====================--
+local function onIncoming(text, uid, name)
+	if uid == player.UserId and not CONFIG.ShowOwn then return end
+	task.spawn(function()
+		local tr, lang = translateIncoming(text, uid)
+		if tr and LANG[lang] then
+			addMessage(name .. " " .. LANG[lang].flag, text, tr, LANG[lang].color)
+		end
 	end)
 end
 
@@ -1248,12 +1317,66 @@ if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
 	TextChatService.MessageReceived:Connect(function(msg)
 		local src = msg.TextSource
 		if not src then return end
-		onMessage(Players:GetPlayerByUserId(src.UserId), msg.Text)
+		local plr = Players:GetPlayerByUserId(src.UserId)
+		onIncoming(msg.Text, src.UserId, plr and plr.DisplayName or src.Name)
 	end)
 else
-	local function hook(p) p.Chatted:Connect(function(m) onMessage(p, m) end) end
+	local function hook(p)
+		p.Chatted:Connect(function(m) onIncoming(m, p.UserId, p.DisplayName) end)
+	end
 	for _, p in ipairs(Players:GetPlayers()) do hook(p) end
 	Players.PlayerAdded:Connect(hook)
 end
 
-print("🌐 Tradutor EN/ES v3.2 ativo | RightShift: mostrar/ocultar" .. (httpRequest and "" or " (sem 'request': tradução indisponível)"))
+--==================== BOTÕES / ARRASTAR / ATALHOS ====================--
+local minimized = false
+headerBtn("–", -30, function(b)
+	minimized = not minimized
+	list.Visible, bar.Visible = not minimized, not minimized
+	if minimized then pop.Visible = false end
+	b.Text = minimized and "+" or "–"
+	TweenService:Create(main, TweenInfo.new(0.2), { Size = UDim2.fromOffset(W, minimized and 32 or H) }):Play()
+end)
+
+headerBtn("🗑", -58, function()
+	for _, c in ipairs(list:GetChildren()) do
+		if c:IsA("TextLabel") then c:Destroy() end
+	end
+end)
+
+headerBtn("S", -86, function(b)
+	CONFIG.SlangMode = not CONFIG.SlangMode
+	b.BackgroundColor3 = CONFIG.SlangMode and Color3.fromRGB(40, 40, 55) or Color3.fromRGB(90, 40, 40)
+end)
+
+local dragging, dragStart, startPos
+header.Active = true
+header.InputBegan:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+		dragging, dragStart, startPos = true, i.Position, main.Position
+		i.Changed:Connect(function()
+			if i.UserInputState == Enum.UserInputState.End then dragging = false end
+		end)
+	end
+end)
+UIS.InputChanged:Connect(function(i)
+	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+		local d = i.Position - dragStart
+		main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+	end
+end)
+
+UIS.InputBegan:Connect(function(i, gp)
+	if i.KeyCode == Enum.KeyCode.Tab and box:IsFocused() and sugg then
+		task.defer(function()
+			box.Text = box.Text:gsub("\t", "")
+			acceptSugg()
+			box:CaptureFocus()
+		end)
+	elseif i.KeyCode == CONFIG.ToggleKey and not gp then
+		gui.Enabled = not gui.Enabled
+	end
+end)
+
+updateLang(false)
+print("🌐 Tradutor v3.5 carregado | RightShift esconde/mostra")
